@@ -416,7 +416,7 @@ async function registerUserUnderSponsor(payload) {
                     category,
                     caste,
                     memberId: await generateUniqueMemberId(session),
-                    sponsorId: sponsor?.memberId || sponsorId || "",
+                    sponsorId: sponsor?.memberId || "",
                     sponsorName: sponsor?.userName || "",
                     parent: sponsor?._id || null,
                     parentId: placement?.parentId || null,
@@ -459,7 +459,7 @@ async function registerUserUnderSponsor(payload) {
                     email,
                     category,
                     caste,
-                    sponsorId: sponsor?.memberId || sponsorId || user.sponsorId || "",
+                    sponsorId: sponsor?.memberId || user.sponsorId || "",
                     sponsorName: sponsor?.userName || user.sponsorName || "",
                     parent: sponsor?._id || user.parent || null,
                     password: hashedPassword,
@@ -732,3 +732,4 @@ module.exports = {
     resolvePlacementForSponsor,
     validateSponsorId
 };
+

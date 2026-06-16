@@ -183,10 +183,7 @@ const RegistrationForm = () => {
             }
         }
 
-        if (formData.sponsorId && !formData.sponsorName) {
-            setError('Please enter a valid Sponsor Id');
-            return false;
-        }
+
 
         /* Plan validation removed as per user request to allow None/Free option */
 
@@ -315,8 +312,6 @@ const RegistrationForm = () => {
                                     <span className="text-[#C8A96A]/70">Fetching sponsor name...</span>
                                 ) : formData.sponsorName ? (
                                     <span className="text-[#F5E6C8]/80">Sponsor Name: {formData.sponsorName}</span>
-                                ) : formData.sponsorId ? (
-                                    <span className="text-red-400/90">Sponsor not found</span>
                                 ) : null}
                             </div>
                         </div>
@@ -568,3 +563,4 @@ const RegistrationForm = () => {
 };
 
 export default RegistrationForm;
+
