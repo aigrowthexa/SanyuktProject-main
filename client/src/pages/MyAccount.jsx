@@ -254,27 +254,36 @@ const MyAccount = ({ defaultTab }) => {
     };
 
     const handleKycSubmit = async () => {
+        const normalizedKycData = {
+            ...kycData,
+            panNumber: kycData.panNumber || kycData.bankDetails.panNumber,
+            bankDetails: {
+                ...kycData.bankDetails,
+                panNumber: kycData.bankDetails.panNumber || kycData.panNumber
+            }
+        };
+
         if (
-            !kycData.aadharNumber ||
-            !kycData.panNumber ||
-            !kycData.nominee.name ||
-            !kycData.nominee.relation ||
-            !kycData.nominee.dob ||
-            !kycData.nominee.address ||
-            !kycData.nominee.state ||
-            !kycData.nominee.city ||
-            !kycData.bankDetails.accountNumber ||
-            !kycData.bankDetails.ifscCode ||
-            !kycData.bankDetails.bankName ||
-            !kycData.bankDetails.accountType ||
-            !kycData.bankDetails.panNumber
+            !normalizedKycData.aadharNumber ||
+            !normalizedKycData.panNumber ||
+            !normalizedKycData.nominee.name ||
+            !normalizedKycData.nominee.relation ||
+            !normalizedKycData.nominee.dob ||
+            !normalizedKycData.nominee.address ||
+            !normalizedKycData.nominee.state ||
+            !normalizedKycData.nominee.city ||
+            !normalizedKycData.bankDetails.accountNumber ||
+            !normalizedKycData.bankDetails.ifscCode ||
+            !normalizedKycData.bankDetails.bankName ||
+            !normalizedKycData.bankDetails.accountType ||
+            !normalizedKycData.bankDetails.panNumber
         ) {
             setSnackbar({ open: true, message: 'Please fill all required KYC fields including nominee and bank details', severity: 'warning' });
             return;
         }
         setKycSubmitting(true);
         try {
-            const res = await api.put('/kyc', kycData);
+            const res = await api.put('/kyc', normalizedKycData);
             const updatedUser = res.data.user;
             applyUserProfile(updatedUser);
             localStorage.setItem('user', JSON.stringify(updatedUser));
@@ -438,6 +447,38 @@ const MyAccount = ({ defaultTab }) => {
                 </Alert>
             )}
 
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5, color: '#F5E6C8' }}>Identity Details</Typography>
+            <Paper variant="outlined" sx={{ borderRadius: '12px', p: 3, mb: 4 }}>
+                <Grid container spacing={3}>
+                    <Grid item xs={12} md={6}>
+                        <TextField
+                            fullWidth
+                            label="Aadhar Number"
+                            value={kycData.aadharNumber}
+                            onChange={(e) => setKycData({ ...kycData, aadharNumber: e.target.value.replace(/\D/g, '').slice(0, 12) })}
+                            disabled={kycReadOnly}
+                            inputProps={{ maxLength: 12 }}
+                        />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <TextField
+                            fullWidth
+                            label="PAN Number"
+                            value={kycData.panNumber || kycData.bankDetails.panNumber}
+                            onChange={(e) => {
+                                const nextPan = e.target.value.toUpperCase();
+                                setKycData({
+                                    ...kycData,
+                                    panNumber: nextPan,
+                                    bankDetails: { ...kycData.bankDetails, panNumber: nextPan }
+                                });
+                            }}
+                            disabled={kycReadOnly}
+                        />
+                    </Grid>
+                </Grid>
+            </Paper>
+
             <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5, color: '#F5E6C8' }}>Nominee Details</Typography>
             <Paper variant="outlined" sx={{ borderRadius: '12px', p: 3, mb: 4 }}>
                 <Grid container spacing={3}>
@@ -528,7 +569,14 @@ const MyAccount = ({ defaultTab }) => {
                             fullWidth
                             label="PAN Number"
                             value={kycData.bankDetails.panNumber}
-                            onChange={(e) => setKycData({ ...kycData, bankDetails: { ...kycData.bankDetails, panNumber: e.target.value.toUpperCase() } })}
+                            onChange={(e) => {
+                                const nextPan = e.target.value.toUpperCase();
+                                setKycData({
+                                    ...kycData,
+                                    panNumber: nextPan,
+                                    bankDetails: { ...kycData.bankDetails, panNumber: nextPan }
+                                });
+                            }}
                             disabled={kycReadOnly}
                         />
                     </Grid>

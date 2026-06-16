@@ -389,15 +389,20 @@ exports.updateProfile = async (req, res) => {
 exports.submitKyc = async (req, res) => {
     try {
         const { aadharNumber, panNumber, nominee, bankDetails, kycDocuments } = req.body;
+        const normalizedPanNumber = panNumber || bankDetails?.panNumber || bankDetails?.apnNumber;
+        const normalizedBankDetails = {
+            ...bankDetails,
+            panNumber: bankDetails?.panNumber || bankDetails?.apnNumber || normalizedPanNumber
+        };
 
         if (
             !aadharNumber ||
-            !panNumber ||
-            !bankDetails?.accountNumber ||
-            !bankDetails?.ifscCode ||
-            !bankDetails?.bankName ||
-            !bankDetails?.accountType ||
-            !(bankDetails?.panNumber || bankDetails?.apnNumber) ||
+            !normalizedPanNumber ||
+            !normalizedBankDetails?.accountNumber ||
+            !normalizedBankDetails?.ifscCode ||
+            !normalizedBankDetails?.bankName ||
+            !normalizedBankDetails?.accountType ||
+            !normalizedBankDetails?.panNumber ||
             !nominee?.name ||
             !nominee?.relation ||
             !nominee?.dob ||
@@ -413,9 +418,9 @@ exports.submitKyc = async (req, res) => {
         const updates = {
             kycStatus: "Submitted",
             aadharNumber,
-            panNumber,
+            panNumber: normalizedPanNumber,
             nominee,
-            bankDetails,
+            bankDetails: normalizedBankDetails,
             kycDocuments
         };
 

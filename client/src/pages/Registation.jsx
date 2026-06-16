@@ -14,6 +14,7 @@ const RegistrationForm = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const [loading, setLoading] = useState(false);
+    const [sponsorLookupLoading, setSponsorLookupLoading] = useState(false);
     const [formData, setFormData] = useState({
         sponsorId: '',
         sponsorName: '',
@@ -79,16 +80,46 @@ const RegistrationForm = () => {
     }, [referralPosition, referralSponsorId]);
 
     useEffect(() => {
-        setFormData((prev) => {
-            if (prev.sponsorName === '') {
-                return prev;
-            }
+        const normalizedSponsorId = String(formData.sponsorId || '').trim().toUpperCase();
 
-            return {
-                ...prev,
-                sponsorName: '',
-            };
-        });
+        if (!normalizedSponsorId) {
+            setSponsorLookupLoading(false);
+            setFormData((prev) => (
+                prev.sponsorName
+                    ? { ...prev, sponsorName: '' }
+                    : prev
+            ));
+            return;
+        }
+
+        let isActive = true;
+        setSponsorLookupLoading(true);
+
+        api.get(`/sponsor/${encodeURIComponent(normalizedSponsorId)}`)
+            .then((res) => {
+                if (!isActive) return;
+                setFormData((prev) => ({
+                    ...prev,
+                    sponsorId: normalizedSponsorId,
+                    sponsorName: String(res.data?.name || '').trim()
+                }));
+            })
+            .catch(() => {
+                if (!isActive) return;
+                setFormData((prev) => ({
+                    ...prev,
+                    sponsorName: ''
+                }));
+            })
+            .finally(() => {
+                if (isActive) {
+                    setSponsorLookupLoading(false);
+                }
+            });
+
+        return () => {
+            isActive = false;
+        };
     }, [formData.sponsorId]);
 
     const handleChange = (e) => {
@@ -102,6 +133,12 @@ const RegistrationForm = () => {
                 ...prev,
                 state: value,
                 district: '',
+            }));
+        } else if (name === 'sponsorId') {
+            setFormData((prev) => ({
+                ...prev,
+                sponsorId: value.toUpperCase(),
+                sponsorName: ''
             }));
         } else {
             setFormData((prev) => ({
@@ -144,6 +181,11 @@ const RegistrationForm = () => {
                 setError(`Please enter ${item.message}`);
                 return false;
             }
+        }
+
+        if (formData.sponsorId && !formData.sponsorName) {
+            setError('Please enter a valid Sponsor Id');
+            return false;
         }
 
         /* Plan validation removed as per user request to allow None/Free option */
@@ -240,7 +282,7 @@ const RegistrationForm = () => {
                         <div className="rounded-xl border border-[#C8A96A]/30 bg-[#C8A96A]/10 px-4 py-3 text-sm font-bold text-[#F5E6C8]">
                             Referral link applied
                             <div className="mt-1 text-[12px] font-semibold text-[#F5E6C8]/80">
-                                Sponsor: {referralSponsorId || 'Auto detected'}{referralPosition ? ` | Preferred position: ${referralPosition}` : ''}
+                                Sponsor: {referralSponsorId || 'Auto detected'}{formData.sponsorName ? ` (${formData.sponsorName})` : ''}{referralPosition ? ` | Preferred position: ${referralPosition}` : ''}
                             </div>
                         </div>
                     )}
@@ -268,20 +310,15 @@ const RegistrationForm = () => {
                                 placeholder="Enter Sponsor Id"
                                 className={`w-full border border-[#C8A96A]/20 rounded-2xl px-5 py-4 text-[15px] text-[#F5E6C8] placeholder:text-[#F5E6C8]/35 focus:border-[#C8A96A] focus:ring-1 focus:ring-[#C8A96A]/30 outline-none transition-all font-bold ${sponsorLocked ? 'bg-[#1A1A1A] cursor-not-allowed' : 'bg-[#0D0D0D]'}`}
                             />
-                        </div>
-
-
-
-                        <div className="flex flex-col gap-2 relative group/input">
-                            <label className="text-[11px] md:text-xs font-black uppercase tracking-widest text-[#C8A96A]">Sponsor Name</label>
-                            <input
-                                type="text"
-                                name="sponsorName"
-                                value={formData.sponsorName}
-                                readOnly
-                                placeholder="Auto-fetched Sponsor Name"
-                                className="w-full bg-[#1A1A1A] border border-[#C8A96A]/20 rounded-2xl px-5 py-4 text-[15px] text-[#F5E6C8]/60 outline-none cursor-not-allowed font-bold"
-                            />
+                            <div className="min-h-[20px] text-[12px] font-semibold">
+                                {sponsorLookupLoading ? (
+                                    <span className="text-[#C8A96A]/70">Fetching sponsor name...</span>
+                                ) : formData.sponsorName ? (
+                                    <span className="text-[#F5E6C8]/80">Sponsor Name: {formData.sponsorName}</span>
+                                ) : formData.sponsorId ? (
+                                    <span className="text-red-400/90">Sponsor not found</span>
+                                ) : null}
+                            </div>
                         </div>
 
                         <div className="flex flex-col gap-2 relative group/input">

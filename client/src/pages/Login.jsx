@@ -173,7 +173,7 @@ const UserLogin = () => {
 
                                     {/* Email Input */}
                                     <div className="space-y-2">
-                                        <label className="text-[11px] md:text-xs font-black uppercase tracking-widest text-[#C8A96A]">Email / Sponser ID</label>
+                                        <label className="text-[11px] md:text-xs font-black uppercase tracking-widest text-[#C8A96A]">Email ID</label>
                                         <div className="relative group/input">
                                             <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#C8A96A]/40 group-hover/input:text-[#C8A96A] transition-colors" />
                                             <input
@@ -181,7 +181,7 @@ const UserLogin = () => {
                                                 name="email"
                                                 value={formData.email}
                                                 onChange={handleChange}
-                                                placeholder="Email / Sponsor ID"
+                                                placeholder="Enter Email ID"
                                                 className="w-full bg-[#0D0D0D] border border-[#C8A96A]/20 rounded-2xl pl-12 pr-4 py-4 text-[#F5E6C8] placeholder:text-[#F5E6C8]/35 focus:border-[#C8A96A] outline-none transition-all font-bold text-[15px]"
                                                 required
                                             />
