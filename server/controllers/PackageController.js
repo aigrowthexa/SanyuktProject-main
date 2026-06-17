@@ -3,6 +3,7 @@ const User = require("../models/User");
 const IncomeHistory = require("../models/IncomeHistory");
 const BinaryTree = require("../models/BinaryTree");
 const { distributeDirectIncome } = require("../services/incomeService");
+const { distributeLevelIncome } = require("../utils/mlmUtils");
 const { propagateBinaryVolume } = require("../services/binaryService");
 const crypto = require("crypto");
 const Razorpay = require("razorpay");
@@ -122,6 +123,7 @@ exports.activatePackage = async (req, res) => {
         }
 
         // ── 4. Activate user ─────────────────────────────────────────────────
+        const shouldTriggerLevelIncome = !user.activeStatus;
         const prevBV = user.bv || 0;
         const prevPV = user.pv || 0;
 
@@ -157,6 +159,10 @@ exports.activatePackage = async (req, res) => {
 
         await session.commitTransaction();
         session.endSession();
+
+        if (shouldTriggerLevelIncome) {
+            await distributeLevelIncome(user);
+        }
 
         return res.json({
             success: true,

@@ -4,6 +4,7 @@ const Order = require("../models/Order");
 const IncomeHistory = require("../models/IncomeHistory");
 const { createIncomeEntry, distributeDirectIncome } = require("./incomeService");
 const { creditWallet } = require("./walletService");
+const { distributeLevelIncome } = require("../utils/mlmUtils");
 const {
     propagateBinaryVolume,
     resolveTotalLeftPV,
@@ -481,6 +482,13 @@ const processQualifiedFirstPurchase = async ({
                 matchingResults,
             };
         });
+
+        if (result?.processed) {
+            const activatedUser = await User.findById(userId).select("_id memberId parent activeStatus");
+            if (activatedUser?.activeStatus) {
+                await distributeLevelIncome(activatedUser);
+            }
+        }
 
         return result;
     } finally {

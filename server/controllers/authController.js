@@ -3,7 +3,6 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const sendEmail = require("../utils/sendEmail");
-const { distributeLevelIncome, distributeDirectIncome, updateTeamPV } = require("../utils/mlmUtils");
 const {
     MlmServiceError,
     ensureUserPlacementConsistency,
@@ -76,17 +75,9 @@ exports.verifyOtp = async (req, res) => {
         user.isVerified = true;
         user.otp = undefined;
         user.otpExpire = undefined;
-        user.activeStatus = true;
         await user.save();
 
-        if (user.parentId) {
-            await ensureUserPlacementConsistency(user._id);
-            await distributeDirectIncome(user);
-            await distributeLevelIncome(user);
-            await updateTeamPV(user);
-        } else {
-            await ensureUserPlacementConsistency(user._id);
-        }
+        await ensureUserPlacementConsistency(user._id);
 
         const refreshedUser = await User.findById(user._id);
 

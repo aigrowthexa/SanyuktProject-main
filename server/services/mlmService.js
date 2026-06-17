@@ -13,7 +13,6 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
 
 const User = require("../models/User");
 const BinaryTree = require("../models/BinaryTree");
-const { distributeDirectIncome } = require("./incomeService");
 
 class MlmServiceError extends Error {
     constructor(statusCode, message, details) {
@@ -325,7 +324,6 @@ async function registerUserUnderSponsor(payload) {
 
     try {
         let result;
-        const packageDetails = PACKAGE_DATA[payload?.packageType] || { bv: 0, pv: 0, capping: 0 };
 
         // Razorpay Verification if paid plan
         if (payload?.packageType !== 'none' && payload?.paymentMethod === 'razorpay') {
@@ -421,22 +419,18 @@ async function registerUserUnderSponsor(payload) {
                     parent: sponsor?._id || null,
                     parentId: placement?.parentId || null,
                     position: placement?.position || payload?.position || "",
+                    packageType: "none",
                     password: hashedPassword,
-                    activeStatus: payload?.packageType !== 'none',
-                    bv: packageDetails.bv,
-                    pv: packageDetails.pv,
-                    dailyCapping: packageDetails.capping,
+                    activeStatus: false,
+                    bv: 0,
+                    pv: 0,
+                    dailyCapping: 0,
                     otp,
                     otpExpire: Date.now() + 5 * 60 * 1000
                 });
 
                 await user.save({ session });
                 await ensurePlacementLinked(user, { sponsorObjectId: sponsor?._id || null, session });
-
-                // Distribute Direct Income if active
-                if (user.activeStatus && sponsor?._id) {
-                    await distributeDirectIncome({ userId: user._id, session });
-                }
             } else {
                 if (!user.parentId && sponsor) {
                     placement = await resolvePlacementForSponsor(sponsor.memberId, {
@@ -462,11 +456,12 @@ async function registerUserUnderSponsor(payload) {
                     sponsorId: sponsor?.memberId || user.sponsorId || "",
                     sponsorName: sponsor?.userName || user.sponsorName || "",
                     parent: sponsor?._id || user.parent || null,
+                    packageType: user.packageType || "none",
                     password: hashedPassword,
-                    activeStatus: payload?.packageType !== 'none',
-                    bv: packageDetails.bv,
-                    pv: packageDetails.pv,
-                    dailyCapping: packageDetails.capping,
+                    activeStatus: Boolean(user.activeStatus),
+                    bv: Number(user.bv || 0),
+                    pv: Number(user.pv || 0),
+                    dailyCapping: Number(user.dailyCapping || 0),
                     otp,
                     otpExpire: Date.now() + 5 * 60 * 1000
                 });
@@ -477,11 +472,6 @@ async function registerUserUnderSponsor(payload) {
 
                 await user.save({ session });
                 await ensurePlacementLinked(user, { sponsorObjectId: sponsor?._id || null, session });
-
-                // Distribute Direct Income if active
-                if (user.activeStatus && sponsor?._id) {
-                    await distributeDirectIncome({ userId: user._id, session });
-                }
             }
 
             result = {
