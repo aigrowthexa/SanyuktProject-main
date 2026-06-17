@@ -50,6 +50,15 @@ const AdminProducts = () => {
         "Grocery"
     ];
 
+    const getProductImageUrl = (image) => {
+        if (!image) return null;
+        if (String(image).startsWith("http")) return image;
+        const normalizedPath = String(image).startsWith("/uploads")
+            ? String(image)
+            : `/uploads/${image}`;
+        return `${API_URL}${normalizedPath}`;
+    };
+
     const fetchProducts = async () => {
         setLoading(true);
         try {
@@ -177,9 +186,7 @@ const AdminProducts = () => {
             paymentMethods: product.paymentMethods || ["cod", "upi", "card"],
         });
 
-        if (product.image) {
-            setImagePreview(`${API_URL}/uploads/${product.image}`);
-        }
+        setImagePreview(getProductImageUrl(product.image));
 
         setSelectedImage(null);
         setShowForm(true);
@@ -553,7 +560,7 @@ const AdminProducts = () => {
                                 <div className="relative aspect-[4/3] overflow-hidden bg-[#121212] border-b border-[#C8A96A]/10">
                                     {product.image ? (
                                         <img
-                                            src={`${API_URL}/uploads/${product.image}`}
+                                            src={getProductImageUrl(product.image)}
                                             alt={product.name}
                                             className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
                                             onError={(e) => {
