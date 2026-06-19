@@ -36,11 +36,13 @@ const MyRank = () => {
             .finally(() => setLoading(false));
     }, []);
 
+    const personalPV = Number(stats?.pv || 0);
     const matchedPV = Number(stats?.matchedPV || 0);
+    const rankPV = Number(stats?.rankPV ?? (personalPV + matchedPV));
     const currentRankName = stats?.rank || 'Member';
     const currentRankIdx = RANKS.findIndex((r) => r.name === currentRankName);
     const nextRank = RANKS[currentRankIdx + 1] || null;
-    const progressPct = nextRank ? Math.min((matchedPV / nextRank.matchPV) * 100, 100) : 100;
+    const progressPct = nextRank ? Math.min((rankPV / nextRank.matchPV) * 100, 100) : 100;
 
     if (loading) {
         return (
@@ -94,9 +96,12 @@ const MyRank = () => {
                                 </div>
                             </div>
                             <div className="w-full rounded-[1.25rem] border border-[#C8A96A]/20 bg-[#0D0D0D] px-5 py-4 sm:w-auto sm:rounded-2xl md:rounded-3xl">
-                                <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-[#C8A96A]/70 md:text-[11px]">Total Matched PV</p>
+                                <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-[#C8A96A]/70 md:text-[11px]">Total Rank PV</p>
                                 <p className="break-all text-3xl font-black leading-none tracking-tighter text-[#C8A96A] md:text-4xl">
-                                    {matchedPV.toLocaleString('en-IN')}
+                                    {rankPV.toLocaleString('en-IN')}
+                                </p>
+                                <p className="mt-2 text-[9px] font-bold uppercase tracking-[0.14em] text-[#C8A96A]/55">
+                                    Personal {personalPV.toLocaleString('en-IN')} + Matching {matchedPV.toLocaleString('en-IN')}
                                 </p>
                             </div>
                         </div>
@@ -111,7 +116,7 @@ const MyRank = () => {
                                         <div className="flex items-start gap-2">
                                             <Zap className="mt-0.5 h-4 w-4 shrink-0 text-[#C8A96A]" />
                                             <p className="break-words text-sm font-bold text-[#F5E6C8]">
-                                                <span className="font-black">{(nextRank.matchPV - matchedPV).toLocaleString('en-IN')} PV</span> more to go
+                                                <span className="font-black">{Math.max(nextRank.matchPV - rankPV, 0).toLocaleString('en-IN')} PV</span> more to go
                                             </p>
                                         </div>
                                     </div>
@@ -137,7 +142,7 @@ const MyRank = () => {
                         <div className="mt-5 flex w-full items-start gap-2.5 rounded-xl border border-[#C8A96A]/10 bg-[#0D0D0D] px-4 py-3 sm:mt-6 sm:w-fit">
                             <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#C8A96A]" />
                             <p className="text-[9px] font-black uppercase leading-tight tracking-[0.05em] text-[#F5E6C8]/80">
-                                Equal matching PV required on Left & Right legs
+                                Rank PV = Personal PV + Matching PV
                             </p>
                         </div>
                     </div>
@@ -164,7 +169,7 @@ const MyRank = () => {
 
                     <div className="p-4 md:p-8">
                         <div className="space-y-4">
-                            {RANKS.filter((rank) => matchedPV < rank.matchPV).map((rank) => {
+                            {RANKS.filter((rank) => rankPV < rank.matchPV).map((rank) => {
                                 const isNext = nextRank?.name === rank.name;
 
                                 return (

@@ -76,9 +76,13 @@ const RANKS = [
     { name: "MD", pv: 1500000, reward: "Rs5cr" },
 ];
 
+const getRankProgressPV = (user) =>
+    Number((Number(user?.pv || 0) + Number(user?.matchedPV || 0)).toFixed(2));
+
 exports.checkAndUpgradeRank = async (user) => {
     try {
-        const eligibleRanks = RANKS.filter((rank) => user.matchedPV >= rank.pv);
+        const rankProgressPV = getRankProgressPV(user);
+        const eligibleRanks = RANKS.filter((rank) => rankProgressPV >= rank.pv);
 
         for (const rank of eligibleRanks) {
             const existingRank = await Rank.findOne({ userId: user._id, rankName: rank.name });
@@ -260,6 +264,7 @@ exports.getMLMStats = async (req, res) => {
             legacyGenerationIncome,
             legacyRepurchaseIncome,
             matchedPV: Number(user.matchedPV || 0),
+            rankPV: getRankProgressPV(user),
             rank: user.rank || "Member",
             productPurchases: Number(productPurchases || 0),
             totalOrders: Number(totalOrders || 0),

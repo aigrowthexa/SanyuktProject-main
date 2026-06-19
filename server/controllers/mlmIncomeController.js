@@ -147,10 +147,13 @@ exports.updateRanks = async () => {
             const matchedPV = tree.matchedPV;
             const user = await User.findById(tree.userId);
             if (!user) continue;
+            const rankProgressPV = Number(
+                (Number(user.pv || 0) + Number(matchedPV || 0)).toFixed(2)
+            );
 
             let highestRank = null;
             for (const r of ranks) {
-                if (matchedPV >= r.pv) {
+                if (rankProgressPV >= r.pv) {
                     highestRank = r;
                 } else {
                     break;

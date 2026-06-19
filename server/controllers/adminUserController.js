@@ -1,4 +1,48 @@
 const User = require("../models/User");
+const { propagateBinaryVolume, syncBinaryTreeSnapshot } = require("../services/binaryService");
+const { applyMatchingBonusesForUser } = require("../services/matchingService");
+const mlmController = require("./mlmController");
+
+const SILVER_PACKAGE = {
+    packageType: "599",
+    pv: 0.25,
+    bv: 250,
+    dailyCapping: 2000,
+};
+
+const applyAdminActivationDefaults = (user) => {
+    user.activeStatus = true;
+    user.packageType = SILVER_PACKAGE.packageType;
+    user.pv = SILVER_PACKAGE.pv;
+    user.bv = SILVER_PACKAGE.bv;
+    user.dailyCapping = SILVER_PACKAGE.dailyCapping;
+};
+
+const reconcileAdminActivation = async (user, wasActive) => {
+    if (!user || wasActive || !user.activeStatus) {
+        return;
+    }
+
+    await syncBinaryTreeSnapshot({ user });
+
+    const affectedUplineIds = await propagateBinaryVolume({
+        sourceUserId: user._id,
+        pv: Number(user.pv || 0),
+        bv: Number(user.bv || 0),
+    });
+
+    for (const affectedUserId of affectedUplineIds) {
+        await applyMatchingBonusesForUser({
+            userId: affectedUserId,
+            sourceUserId: user._id,
+        });
+
+        const affectedUser = await User.findById(affectedUserId);
+        if (affectedUser) {
+            await mlmController.checkAndUpgradeRank(affectedUser);
+        }
+    }
+};
 
 // GET all users
 exports.getAllUsers = async (req, res) => {
@@ -119,20 +163,31 @@ exports.updateUser = async (req, res) => {
             }
         }
 
+        const wasActive = Boolean(user.activeStatus);
+
         // Update fields
         user.userName = userName || name || user.userName || user.name;
         user.email = email || user.email;
         user.role = role || user.role;
         user.phone = phone || user.phone;
         if (typeof activeStatus === "boolean") {
-            user.activeStatus = activeStatus;
+            if (activeStatus) {
+                applyAdminActivationDefaults(user);
+            } else {
+                user.activeStatus = false;
+            }
         } else if (status) {
-            user.activeStatus = status === "active";
+            if (status === "active") {
+                applyAdminActivationDefaults(user);
+            } else {
+                user.activeStatus = false;
+            }
         }
         if (kycStatus) user.kycStatus = kycStatus;
         if (kycMessage !== undefined) user.kycMessage = kycMessage;
 
         await user.save();
+        await reconcileAdminActivation(user, wasActive);
 
         // Return updated user without password
         const updatedUser = await User.findById(req.params.id).select("-password");
@@ -171,8 +226,15 @@ exports.updateUserStatus = async (req, res) => {
             });
         }
 
-        user.activeStatus = status === 'active';
+        const wasActive = Boolean(user.activeStatus);
+
+        if (status === 'active') {
+            applyAdminActivationDefaults(user);
+        } else {
+            user.activeStatus = false;
+        }
         await user.save();
+        await reconcileAdminActivation(user, wasActive);
 
         res.json({
             success: true,
@@ -180,7 +242,10 @@ exports.updateUserStatus = async (req, res) => {
             user: {
                 id: user._id,
                 activeStatus: user.activeStatus,
-                status: user.activeStatus ? 'active' : 'inactive'
+                status: user.activeStatus ? 'active' : 'inactive',
+                packageType: user.packageType,
+                pv: user.pv,
+                bv: user.bv,
             }
         });
     } catch (error) {
