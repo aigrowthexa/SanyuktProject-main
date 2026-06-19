@@ -4,18 +4,12 @@ import {
     Copy, Info, CheckCircle2, CreditCard, ShieldCheck
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { buildCompanyUpiQrUrl, companyBankDetails } from '../constants/companyBankDetails';
 
 const OurBanker = () => {
     const [copied, setCopied] = useState(false);
 
-    const bankDetails = {
-        accountName: "SAYUKT PARIVAR AND RICH LIFE PVT. LTD.",
-        accountNumber: "5935938755",
-        ifsc: "CBIN0282390",
-        bankName: "CENTRAL BANK OF INDIA",
-        branch: "LALPUR",
-        upiId: "20260325575843-iservuqrsbrp@cbin"
-    };
+    const bankDetails = companyBankDetails;
 
     const handleCopy = (text) => {
         navigator.clipboard.writeText(text);
@@ -260,7 +254,7 @@ const OurBanker = () => {
                             <div className="absolute -inset-4 border border-[#C8A96A]/10 rounded-[2rem]"></div>
                             <div className="relative bg-white rounded-2xl p-4 shadow-sm h-full w-full flex items-center justify-center">
                                 <img
-                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=${bankDetails.upiId}&pn=${encodeURIComponent(bankDetails.accountName)}&cu=INR`}
+                                    src={buildCompanyUpiQrUrl({ size: 250 })}
                                     alt="Payment QR Code"
                                     className="w-full h-full object-contain"
                                 />

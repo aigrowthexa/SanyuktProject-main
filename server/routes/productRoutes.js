@@ -9,9 +9,23 @@ const {
     deleteProduct,
 } = require("../controllers/productController");
 
-router.post("/", upload.single("image"), createProduct);
+router.post(
+    "/",
+    upload.fields([
+        { name: "image", maxCount: 1 },
+        { name: "images", maxCount: 2 },
+    ]),
+    createProduct
+);
 router.get("/", getProducts);
-router.put("/:id", upload.single("image"), updateProduct);
+router.put(
+    "/:id",
+    upload.fields([
+        { name: "image", maxCount: 1 },
+        { name: "images", maxCount: 2 },
+    ]),
+    updateProduct
+);
 router.delete("/:id", deleteProduct);
 
 module.exports = router;

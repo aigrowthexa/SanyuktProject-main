@@ -41,6 +41,11 @@ exports.createOrder = async (req, res) => {
         if (!validMethods.includes(effectivePaymentMethod)) {
             return res.status(400).json({ message: "Invalid payment method" });
         }
+        const normalizedSubtotal = Number(subtotal || 0);
+        const normalizedShipping = Number(shipping || 0);
+        const normalizedDiscount = Number(discount || 0);
+        const effectiveTax = 0;
+        const effectiveTotal = Number((normalizedSubtotal + normalizedShipping - normalizedDiscount).toFixed(2));
 
         // Verify payment if online
         if (effectivePaymentMethod !== 'cod') {
@@ -57,7 +62,7 @@ exports.createOrder = async (req, res) => {
             try {
                 const orderDetails = await razorpay.orders.fetch(razorpay_order_id);
                 const actualPaid = orderDetails.amount / 100;
-                if (Math.abs(actualPaid - Number(total)) > 0.01) {
+                if (Math.abs(actualPaid - effectiveTotal) > 0.01) {
                     return res.status(400).json({ message: "Payment amount mismatch. Fraudulent request detected." });
                 }
             } catch (err) {
@@ -80,11 +85,11 @@ exports.createOrder = async (req, res) => {
             quantity,
             shippingInfo,
             paymentMethod: effectivePaymentMethod,
-            subtotal,
-            shipping,
-            tax,
-            discount,
-            total,
+            subtotal: normalizedSubtotal,
+            shipping: normalizedShipping,
+            tax: effectiveTax,
+            discount: normalizedDiscount,
+            total: effectiveTotal,
             bv: orderBv,
             pv: orderPv,
             razorpayOrderId: razorpay_order_id,
@@ -104,7 +109,7 @@ exports.createOrder = async (req, res) => {
             await processOrderMLM(req.user._id, orderBv, orderPv, {
                 orderId: order._id,
                 orderType: order.orderType,
-                orderTotal: Number(order.total || total || 0),
+                orderTotal: Number(order.total || effectiveTotal || 0),
             });
         }
 
@@ -112,7 +117,7 @@ exports.createOrder = async (req, res) => {
             const userEmail = req.user.email;
             const orderIdShort = order._id.toString().slice(-8).toUpperCase();
             const subject = `Order Confirmed: #${orderIdShort} - Sanyukt Parivaar`;
-            const text = `Dear ${req.user.name},\n\nThank you for your order!\n\nOrder ID: #${orderIdShort}\nProduct: ${productData.name}\nQuantity: ${quantity}\nTotal Amount: ₹${total}\nPayment Method: ${effectivePaymentMethod.toUpperCase()}\n\nThank you for choosing Sanyukt Parivaar!`;
+            const text = `Dear ${req.user.name},\n\nThank you for your order!\n\nOrder ID: #${orderIdShort}\nProduct: ${productData.name}\nQuantity: ${quantity}\nTotal Amount: ₹${effectiveTotal}\nPayment Method: ${effectivePaymentMethod.toUpperCase()}\n\nThank you for choosing Sanyukt Parivaar!`;
 
             sendEmail(userEmail, subject, text).catch(err =>
                 console.error("❌ Failed to send order success email:", err.message)

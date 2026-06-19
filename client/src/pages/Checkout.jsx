@@ -105,8 +105,8 @@ const CheckoutPage = () => {
     // Calculate totals
     const subtotal = Number(product.price) || 0;
     const shipping = subtotal > 500 ? 0 : 40;
-    const tax = subtotal * 0.18; // 18% GST
-    const total = Number((subtotal + shipping + tax - discount).toFixed(2));
+    const tax = 0;
+    const total = Number((subtotal + shipping - discount).toFixed(2));
 
     const handleInputChange = (e) => {
         setShippingInfo({
@@ -648,10 +648,6 @@ const CheckoutPage = () => {
                                     <span className="text-[#F5E6C8]">
                                         {shipping === 0 ? 'Free' : `₹${formatCurrency(shipping)}`}
                                     </span>
-                                </div>
-                                <div className="flex justify-between text-sm font-bold uppercase tracking-widest">
-                                    <span className="text-[#C8A96A]">GST (18%)</span>
-                                    <span className="text-[#F5E6C8]">₹{formatCurrency(tax)}</span>
                                 </div>
                                 {discount > 0 && (
                                     <div className="flex justify-between text-sm font-bold uppercase tracking-widest text-[#C8A96A]">

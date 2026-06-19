@@ -106,7 +106,7 @@ const UserDashboardLayout = () => {
             path: '/my-account/bonus/first/silver',
             badge: '0',
             children: [
-                { name: 'Shop Package (Activation)', path: '/my-account/package-upgrade', id: 'first_purchase_shop' },
+                { name: 'Activation Package', path: '/my-account/package-upgrade', id: 'first_purchase_shop' },
                 { name: 'Silver Matching', path: '/my-account/bonus/first/silver', id: 'first_silver' },
                 { name: 'Gold Matching', path: '/my-account/bonus/first/gold', id: 'first_gold' },
                 { name: 'Diamond Matching', path: '/my-account/bonus/first/diamond', id: 'first_diamond' },
@@ -256,207 +256,207 @@ const UserDashboardLayout = () => {
             <div className="sticky top-0 z-40 h-[6px] bg-[#c07a1b]" />
 
             <div className="flex min-h-[calc(100vh-6px)]">
-            <aside
-                className={`fixed left-0 top-[94px] md:top-[121px] z-50 h-[calc(100vh-94px)] md:h-[calc(100vh-121px)] overflow-y-auto border-r border-[#c8a96a]/14 bg-[linear-gradient(180deg,#121212_0%,#0d0d0d_48%,#111111_100%)] text-[#f5e6c8] transition-all duration-300
+                <aside
+                    className={`fixed left-0 top-[94px] md:top-[121px] z-50 h-[calc(100vh-94px)] md:h-[calc(100vh-121px)] overflow-y-auto border-r border-[#c8a96a]/14 bg-[linear-gradient(180deg,#121212_0%,#0d0d0d_48%,#111111_100%)] text-[#f5e6c8] transition-all duration-300
                     ${isMobile
-                        ? `w-[min(86vw,320px)] ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`
-                        : sidebarOpen ? 'w-[214px]' : 'w-[82px]'}`}
-            >
-                <div className={`${sidebarOpen || isMobile ? 'px-0 py-0' : 'px-0 py-3'}`}>
-                    <div className={`border-b border-[#c8a96a]/12 ${sidebarOpen || isMobile ? 'px-4 py-4' : 'px-0 py-4'} ${sidebarOpen || isMobile ? '' : 'flex justify-center'}`}>
-                        {sidebarOpen || isMobile ? (
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border-2 border-[#c8a96a]/30 bg-black shadow-lg">
+                            ? `w-[min(86vw,320px)] ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`
+                            : sidebarOpen ? 'w-[214px]' : 'w-[82px]'}`}
+                >
+                    <div className={`${sidebarOpen || isMobile ? 'px-0 py-0' : 'px-0 py-3'}`}>
+                        <div className={`border-b border-[#c8a96a]/12 ${sidebarOpen || isMobile ? 'px-4 py-4' : 'px-0 py-4'} ${sidebarOpen || isMobile ? '' : 'flex justify-center'}`}>
+                            {sidebarOpen || isMobile ? (
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border-2 border-[#c8a96a]/30 bg-black shadow-lg">
+                                        <img
+                                            src={userData.profileImage || profileFallback}
+                                            alt="Profile"
+                                            className="h-full w-full object-cover"
+                                        />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <div className="truncate text-[13px] font-black uppercase tracking-[0.08em] text-[#f5e6c8]">
+                                            {userData.userName || 'Member'}
+                                        </div>
+                                        <div className="mt-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#c8a96a]">
+                                            {userData.memberId || 'SPRL0000'}
+                                        </div>
+                                        <div className="mt-2 flex items-center gap-2">
+                                            <span
+                                                className="rounded-sm bg-[#c8a96a]/12 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.14em] text-[#f5e6c8]"
+                                                style={{
+                                                    border: `1px solid ${getRankColor(stats?.rank || 'Member')}55`,
+                                                }}
+                                            >
+                                                {stats?.rank || 'Member'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-[#c8a96a]/20 bg-black">
                                     <img
                                         src={userData.profileImage || profileFallback}
                                         alt="Profile"
                                         className="h-full w-full object-cover"
                                     />
                                 </div>
-                                <div className="min-w-0">
-                                    <div className="truncate text-[13px] font-black uppercase tracking-[0.08em] text-[#f5e6c8]">
-                                        {userData.userName || 'Member'}
-                                    </div>
-                                    <div className="mt-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#c8a96a]">
-                                        {userData.memberId || 'SPRL0000'}
-                                    </div>
-                                    <div className="mt-2 flex items-center gap-2">
-                                        <span
-                                            className="rounded-sm bg-[#c8a96a]/12 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.14em] text-[#f5e6c8]"
-                                            style={{
-                                                border: `1px solid ${getRankColor(stats?.rank || 'Member')}55`,
+                            )}
+                        </div>
+
+                        <nav className="py-1.5">
+                            {menuItems.map((item) => {
+                                const hasChildren = Array.isArray(item.children) && item.children.length > 0;
+                                const isActiveDirect = location.pathname === item.path || (item.path === '/my-account' && location.pathname === '/my-account/');
+                                const isChildActive = hasChildren && item.children.some(
+                                    (child) => location.pathname === child.path || location.pathname.startsWith(`${child.path}/`)
+                                );
+                                const isActive = isActiveDirect || isChildActive;
+                                const Icon = item.icon;
+
+                                return (
+                                    <div key={item.id} className="px-2 py-0.5">
+                                        <button
+                                            onClick={() => {
+                                                if (hasChildren && (sidebarOpen || isMobile)) {
+                                                    setOpenDropdown((prev) => (prev === item.id ? null : item.id));
+                                                    return;
+                                                }
+
+                                                navigate(item.path);
+                                                if (isMobile) setSidebarOpen(false);
                                             }}
-                                        >
-                                            {stats?.rank || 'Member'}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-[#c8a96a]/20 bg-black">
-                                <img
-                                    src={userData.profileImage || profileFallback}
-                                    alt="Profile"
-                                    className="h-full w-full object-cover"
-                                />
-                            </div>
-                        )}
-                    </div>
-
-                    <nav className="py-1.5">
-                        {menuItems.map((item) => {
-                            const hasChildren = Array.isArray(item.children) && item.children.length > 0;
-                            const isActiveDirect = location.pathname === item.path || (item.path === '/my-account' && location.pathname === '/my-account/');
-                            const isChildActive = hasChildren && item.children.some(
-                                (child) => location.pathname === child.path || location.pathname.startsWith(`${child.path}/`)
-                            );
-                            const isActive = isActiveDirect || isChildActive;
-                            const Icon = item.icon;
-
-                            return (
-                                <div key={item.id} className="px-2 py-0.5">
-                                    <button
-                                        onClick={() => {
-                                            if (hasChildren && (sidebarOpen || isMobile)) {
-                                                setOpenDropdown((prev) => (prev === item.id ? null : item.id));
-                                                return;
-                                            }
-
-                                            navigate(item.path);
-                                            if (isMobile) setSidebarOpen(false);
-                                        }}
-                                        className={`group relative flex w-full items-center rounded-md border text-left transition-all duration-200
+                                            className={`group relative flex w-full items-center rounded-md border text-left transition-all duration-200
                                             ${sidebarOpen || isMobile ? 'min-h-[28px] px-2.5 py-1.5' : 'mx-auto min-h-[34px] w-[56px] justify-center px-0'}
                                             ${isActive
-                                                ? 'border-[#c8a96a]/28 bg-[#1b1b1b] text-[#f5e6c8] shadow-[inset_3px_0_0_#c8a96a]'
-                                                : 'border-transparent bg-transparent text-[#f5e6c8]/92 hover:border-[#c8a96a]/18 hover:bg-[#181818]'
-                                            }`}
-                                    >
-                                        <Icon className={`${sidebarOpen || isMobile ? 'mr-2 h-3.5 w-3.5' : 'h-4 w-4'} shrink-0`} strokeWidth={2.2} />
+                                                    ? 'border-[#c8a96a]/28 bg-[#1b1b1b] text-[#f5e6c8] shadow-[inset_3px_0_0_#c8a96a]'
+                                                    : 'border-transparent bg-transparent text-[#f5e6c8]/92 hover:border-[#c8a96a]/18 hover:bg-[#181818]'
+                                                }`}
+                                        >
+                                            <Icon className={`${sidebarOpen || isMobile ? 'mr-2 h-3.5 w-3.5' : 'h-4 w-4'} shrink-0`} strokeWidth={2.2} />
 
-                                        {(sidebarOpen || isMobile) && (
-                                            <>
-                                                <span className="min-w-0 flex-1 truncate text-[12px] font-semibold">
+                                            {(sidebarOpen || isMobile) && (
+                                                <>
+                                                    <span className="min-w-0 flex-1 truncate text-[12px] font-semibold">
+                                                        {item.name}
+                                                    </span>
+                                                    {item.rankBadge && (
+                                                        <span
+                                                            className="mr-2 rounded-sm px-1.5 py-0.5 text-[8px] font-black uppercase"
+                                                            style={{
+                                                                backgroundColor: `${getRankColor(item.rankBadge)}33`,
+                                                                color: getRankColor(item.rankBadge),
+                                                            }}
+                                                        >
+                                                            {item.rankBadge}
+                                                        </span>
+                                                    )}
+                                                    {shouldShowSidebarBadge(item.id) && item.badge !== undefined && item.badge !== null && (
+                                                        <span className="mr-1 rounded-sm border border-[#c8a96a]/18 bg-[#c8a96a]/14 px-1.5 py-0.5 text-[8px] font-black text-[#f5e6c8]">
+                                                            {item.badge}
+                                                        </span>
+                                                    )}
+                                                    {hasChildren && (
+                                                        <ChevronDown
+                                                            size={14}
+                                                            className={`transition-transform duration-200 ${openDropdown === item.id ? 'rotate-180' : ''}`}
+                                                        />
+                                                    )}
+                                                </>
+                                            )}
+
+                                            {!sidebarOpen && !isMobile && (
+                                                <div className="pointer-events-none absolute left-full top-1/2 ml-3 -translate-y-1/2 whitespace-nowrap rounded bg-[#181818] px-2 py-1 text-[10px] font-bold text-[#f5e6c8] opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
                                                     {item.name}
-                                                </span>
-                                                {item.rankBadge && (
-                                                    <span
-                                                        className="mr-2 rounded-sm px-1.5 py-0.5 text-[8px] font-black uppercase"
-                                                        style={{
-                                                            backgroundColor: `${getRankColor(item.rankBadge)}33`,
-                                                            color: getRankColor(item.rankBadge),
-                                                        }}
-                                                    >
-                                                        {item.rankBadge}
-                                                    </span>
-                                                )}
-                                                {shouldShowSidebarBadge(item.id) && item.badge !== undefined && item.badge !== null && (
-                                                    <span className="mr-1 rounded-sm border border-[#c8a96a]/18 bg-[#c8a96a]/14 px-1.5 py-0.5 text-[8px] font-black text-[#f5e6c8]">
-                                                        {item.badge}
-                                                    </span>
-                                                )}
-                                                {hasChildren && (
-                                                    <ChevronDown
-                                                        size={14}
-                                                        className={`transition-transform duration-200 ${openDropdown === item.id ? 'rotate-180' : ''}`}
-                                                    />
-                                                )}
-                                            </>
-                                        )}
+                                                </div>
+                                            )}
+                                        </button>
 
-                                        {!sidebarOpen && !isMobile && (
-                                            <div className="pointer-events-none absolute left-full top-1/2 ml-3 -translate-y-1/2 whitespace-nowrap rounded bg-[#181818] px-2 py-1 text-[10px] font-bold text-[#f5e6c8] opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
-                                                {item.name}
+                                        {hasChildren && (sidebarOpen || isMobile) && openDropdown === item.id && (
+                                            <div className="mt-1 overflow-hidden rounded-md border border-[#c8a96a]/14 bg-[#141414] py-1">
+                                                {item.children.map((child) => {
+                                                    const isChildActiveRoute = location.pathname === child.path;
+                                                    return (
+                                                        <Link
+                                                            key={child.id}
+                                                            to={child.path}
+                                                            onClick={() => isMobile && setSidebarOpen(false)}
+                                                            className={`block px-10 py-2 text-[10px] font-semibold transition-colors
+                                                            ${isChildActiveRoute
+                                                                    ? 'bg-[#1d1d1d] text-[#f5e6c8]'
+                                                                    : 'text-[#f5e6c8]/86 hover:bg-[#191919] hover:text-[#f5e6c8]'
+                                                                }`}
+                                                        >
+                                                            {child.name}
+                                                        </Link>
+                                                    );
+                                                })}
                                             </div>
                                         )}
-                                    </button>
+                                    </div>
+                                );
+                            })}
 
-                                    {hasChildren && (sidebarOpen || isMobile) && openDropdown === item.id && (
-                                        <div className="mt-1 overflow-hidden rounded-md border border-[#c8a96a]/14 bg-[#141414] py-1">
-                                            {item.children.map((child) => {
-                                                const isChildActiveRoute = location.pathname === child.path;
-                                                return (
-                                                    <Link
-                                                        key={child.id}
-                                                        to={child.path}
-                                                        onClick={() => isMobile && setSidebarOpen(false)}
-                                                        className={`block px-10 py-2 text-[10px] font-semibold transition-colors
-                                                            ${isChildActiveRoute
-                                                                ? 'bg-[#1d1d1d] text-[#f5e6c8]'
-                                                                : 'text-[#f5e6c8]/86 hover:bg-[#191919] hover:text-[#f5e6c8]'
-                                                            }`}
-                                                    >
-                                                        {child.name}
-                                                    </Link>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
-
-                        <div className="mt-2 px-2">
-                            <button
-                                onClick={handleLogout}
-                                className={`group flex w-full items-center rounded-md border border-transparent text-[#f5e6c8] transition-colors hover:bg-[#181818]
-                                    ${sidebarOpen || isMobile ? 'px-3 py-2 text-left' : 'mx-auto w-[56px] justify-center px-0 py-2'}`}
-                            >
-                                <LogOut className={`${sidebarOpen || isMobile ? 'mr-3 h-4 w-4' : 'h-4 w-4'}`} strokeWidth={2.2} />
-                                {(sidebarOpen || isMobile) && <span className="text-[12px] font-semibold">Logout</span>}
-                            </button>
-                        </div>
-                    </nav>
-                </div>
-            </aside>
-
-            <main
-                className={`min-h-[calc(100vh-94px)] min-w-0 flex-1 overflow-x-hidden transition-all duration-300 md:min-h-[calc(100vh-121px)]
-                    ${sidebarOpen ? 'md:ml-[214px]' : 'md:ml-[82px]'}`}
-            >
-                <div className="relative z-30">
-                    <div className="flex flex-col gap-3 border-b border-[#c8a96a]/12 bg-[#111111] px-4 py-3 md:flex-row md:items-center md:justify-between md:px-8">
-                        <div className="flex items-center gap-3">
-                            {isMobile && (
+                            <div className="mt-2 px-2">
                                 <button
-                                    onClick={() => setSidebarOpen((prev) => !prev)}
-                                    className="flex h-9 w-9 items-center justify-center rounded border border-[#c8a96a]/18 bg-[#171717] text-[#f5e6c8]"
+                                    onClick={handleLogout}
+                                    className={`group flex w-full items-center rounded-md border border-transparent text-[#f5e6c8] transition-colors hover:bg-[#181818]
+                                    ${sidebarOpen || isMobile ? 'px-3 py-2 text-left' : 'mx-auto w-[56px] justify-center px-0 py-2'}`}
                                 >
-                                    <Menu size={18} />
+                                    <LogOut className={`${sidebarOpen || isMobile ? 'mr-3 h-4 w-4' : 'h-4 w-4'}`} strokeWidth={2.2} />
+                                    {(sidebarOpen || isMobile) && <span className="text-[12px] font-semibold">Logout</span>}
                                 </button>
-                            )}
-                            <div>
-                                <div className="text-[18px] font-black text-[#f5e6c8] md:text-[22px]">
-                                    {pageTitle}
+                            </div>
+                        </nav>
+                    </div>
+                </aside>
+
+                <main
+                    className={`min-h-[calc(100vh-94px)] min-w-0 flex-1 overflow-x-hidden transition-all duration-300 md:min-h-[calc(100vh-121px)]
+                    ${sidebarOpen ? 'md:ml-[214px]' : 'md:ml-[82px]'}`}
+                >
+                    <div className="relative z-30">
+                        <div className="flex flex-col gap-3 border-b border-[#c8a96a]/12 bg-[#111111] px-4 py-3 md:flex-row md:items-center md:justify-between md:px-8">
+                            <div className="flex items-center gap-3">
+                                {isMobile && (
+                                    <button
+                                        onClick={() => setSidebarOpen((prev) => !prev)}
+                                        className="flex h-9 w-9 items-center justify-center rounded border border-[#c8a96a]/18 bg-[#171717] text-[#f5e6c8]"
+                                    >
+                                        <Menu size={18} />
+                                    </button>
+                                )}
+                                <div>
+                                    <div className="text-[18px] font-black text-[#f5e6c8] md:text-[22px]">
+                                        {pageTitle}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="text-left md:text-right">
-                            <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#c8a96a]/65">
-                                Welcome
-                            </div>
-                            <div className="text-[13px] font-bold uppercase text-[#f5e6c8]">
-                                {userData.userName || userData.memberId || 'Member'}
+                            <div className="text-left md:text-right">
+                                <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#c8a96a]/65">
+                                    Welcome
+                                </div>
+                                <div className="text-[13px] font-bold uppercase text-[#f5e6c8]">
+                                    {userData.userName || userData.memberId || 'Member'}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div className="min-w-0 overflow-x-hidden bg-[#0d0d0d] px-2 py-3 sm:px-3 md:px-6 md:py-6">
-                    <Outlet />
-                </div>
-            </main>
+                    <div className="min-w-0 overflow-x-hidden bg-[#0d0d0d] px-2 py-3 sm:px-3 md:px-6 md:py-6">
+                        <Outlet />
+                    </div>
+                </main>
 
-            {isMobile && sidebarOpen && (
-                <button
-                    type="button"
-                    className="fixed inset-0 z-40 bg-black/55"
-                    onClick={() => setSidebarOpen(false)}
-                />
-            )}
+                {isMobile && sidebarOpen && (
+                    <button
+                        type="button"
+                        className="fixed inset-0 z-40 bg-black/55"
+                        onClick={() => setSidebarOpen(false)}
+                    />
+                )}
 
-            <style>{`
+                <style>{`
                 .no-scrollbar::-webkit-scrollbar { display: none; }
 
                 @media print {

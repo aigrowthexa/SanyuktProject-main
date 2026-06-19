@@ -8,6 +8,10 @@ const productSchema = new mongoose.Schema(
         bv: Number,
         stock: Number,
         image: String,
+        images: {
+            type: [String],
+            default: [],
+        },
         description: String,
 
         // ⭐ NEW FIELDS

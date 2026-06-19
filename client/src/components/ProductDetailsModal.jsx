@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -38,8 +38,13 @@ const ProductDetailsModal = ({
     isInCart
 }) => {
     const [isDescExpanded, setIsDescExpanded] = useState(false);
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+    useEffect(() => {
+        setSelectedImageIndex(0);
+    }, [product?._id]);
 
     if (!product) return null;
 
@@ -57,9 +62,29 @@ const ProductDetailsModal = ({
         }).format(amount || 0);
     };
 
-    const productImage = product.image 
-        ? (product.image.startsWith('http') ? product.image : `${API_URL}${product.image.startsWith('/uploads') ? product.image : '/uploads/' + product.image}`)
-        : null;
+    const getProductImages = (item) => {
+        if (!item) return [];
+        if (Array.isArray(item.images) && item.images.length > 0) {
+            return item.images
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((image) => (
+                    image.startsWith('http')
+                        ? image
+                        : `${API_URL}${image.startsWith('/uploads') ? image : '/uploads/' + image}`
+                ));
+        }
+
+        if (!item.image) return [];
+        return [
+            item.image.startsWith('http')
+                ? item.image
+                : `${API_URL}${item.image.startsWith('/uploads') ? item.image : '/uploads/' + item.image}`
+        ];
+    };
+
+    const productImages = getProductImages(product);
+    const productImage = productImages[selectedImageIndex] || productImages[0] || null;
 
     return (
         <Dialog
@@ -151,6 +176,39 @@ const ProductDetailsModal = ({
                                     </div>
                                 )}
                             </Box>
+
+                            {productImages.length > 1 && (
+                                <Box sx={{ width: '100%', maxWidth: { xs: '100%', md: '460px' }, display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 1.5, mb: 2 }}>
+                                    {productImages.map((image, index) => (
+                                        <Box
+                                            key={`${image}-${index}`}
+                                            onClick={() => setSelectedImageIndex(index)}
+                                            sx={{
+                                                height: 92,
+                                                bgcolor: '#111111',
+                                                border: selectedImageIndex === index
+                                                    ? '2px solid rgba(200,169,106,0.9)'
+                                                    : '1px solid rgba(200,169,106,0.18)',
+                                                borderRadius: '14px',
+                                                overflow: 'hidden',
+                                                cursor: 'pointer',
+                                                opacity: selectedImageIndex === index ? 1 : 0.75,
+                                                transition: 'all 0.2s ease',
+                                                '&:hover': {
+                                                    opacity: 1,
+                                                    borderColor: 'rgba(200,169,106,0.7)'
+                                                }
+                                            }}
+                                        >
+                                            <img
+                                                src={image}
+                                                alt={`${product.name} ${index + 1}`}
+                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                            />
+                                        </Box>
+                                    ))}
+                                </Box>
+                            )}
 
                             <Box sx={{ mt: 1, display: 'flex', gap: { xs: 2, md: 3 }, justifyContent: 'center', flexWrap: 'wrap' }}>
                                 <Box sx={{ textAlign: 'center' }}>

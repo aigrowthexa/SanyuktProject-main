@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import {
     Package, Shield, Zap, Star, CheckCircle2,
-    Wallet, AlertCircle, X, Loader2, CheckCircle, Info, ArrowRight, ShieldCheck
+    Wallet, AlertCircle, X, Loader2, CheckCircle, Info, ArrowRight, ShieldCheck, QrCode, Copy
 } from 'lucide-react';
 import api from '../api';
 import toast from 'react-hot-toast';
+import { buildCompanyUpiQrUrl, companyBankDetails } from '../constants/companyBankDetails';
 
 const loadRazorpay = () => {
     return new Promise((resolve) => {
@@ -16,6 +17,10 @@ const loadRazorpay = () => {
         document.body.appendChild(script);
     });
 };
+
+const resolveRazorpayKeyId = (serverKey) =>
+    String(import.meta.env.VITE_RAZORPAY_KEY_ID || '').trim() ||
+    String(serverKey || '').trim();
 
 // ── Package definitions ───────────────────────────────────────────────────────
 const PACKAGES = [
@@ -182,13 +187,27 @@ const FAQSection = () => (
 // ── Confirm Modal ─────────────────────────────────────────────────────────────
 const ConfirmModal = ({ pkg, currentBalance, onConfirm, onCancel, loading }) => {
     const [payMethod, setPayMethod] = useState('razorpay');
+    const [upiCopied, setUpiCopied] = useState(false);
+    const upiQrUrl = buildCompanyUpiQrUrl({ amount: pkg.price, size: 220 });
+
+    const handleCopyUpi = async () => {
+        try {
+            await navigator.clipboard.writeText(companyBankDetails.upiId);
+            setUpiCopied(true);
+            toast.success('UPI ID copied');
+            window.setTimeout(() => setUpiCopied(false), 1800);
+        } catch {
+            toast.error('Unable to copy UPI ID');
+        }
+    };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/80 p-4 backdrop-blur-sm">
+            <div className="flex min-h-full items-start justify-center py-4 sm:items-center">
             <Motion.div 
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="w-full max-w-md overflow-hidden rounded-[2rem] border border-[#C8A96A]/20 bg-[#111111] shadow-2xl relative"
+                className="relative flex max-h-[calc(100vh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-[2rem] border border-[#C8A96A]/20 bg-[#111111] shadow-2xl"
             >
                 {/* Header with Background Pattern */}
                 <div className="relative h-32 bg-black flex items-center justify-center overflow-hidden">
@@ -204,7 +223,7 @@ const ConfirmModal = ({ pkg, currentBalance, onConfirm, onCancel, loading }) => 
                     </div>
                 </div>
 
-                <div className="p-8 text-center pt-4">
+                <div className="overflow-y-auto px-8 pb-8 pt-4 text-center">
                     <h3 className="text-xl font-black uppercase tracking-widest text-[#F5E6C8]">
                         Confirm Activation
                     </h3>
@@ -260,13 +279,67 @@ const ConfirmModal = ({ pkg, currentBalance, onConfirm, onCancel, loading }) => 
                                         </div>
                                     </div>
                                 </label>
+
+                                <label className="flex items-center gap-3 p-3 rounded-xl border border-transparent bg-black/60 cursor-pointer hover:border-[#C8A96A]/20 transition-all">
+                                    <input
+                                        type="radio"
+                                        name="payMethod"
+                                        value="upi"
+                                        checked={payMethod === 'upi'}
+                                        onChange={(e) => setPayMethod(e.target.value)}
+                                        className="h-4 w-4 accent-[#C8A96A]"
+                                    />
+                                    <div className="flex flex-1 items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <QrCode size={14} className="text-[#C8A96A]" />
+                                            <span className="text-[11px] font-black uppercase tracking-widest text-[#F5E6C8]">QR / UPI</span>
+                                        </div>
+                                        <span className="text-[9px] font-black uppercase text-[#F5E6C8]/40">Scan & Copy</span>
+                                    </div>
+                                </label>
                             </div>
+
+                            {payMethod === 'upi' && (
+                                <div className="mt-4 rounded-2xl border border-[#C8A96A]/10 bg-[#0D0D0D] p-4 text-left">
+                                    <div className="grid gap-4 sm:grid-cols-[110px,1fr] sm:items-center">
+                                        <div className="mx-auto flex h-[110px] w-[110px] items-center justify-center rounded-2xl bg-white p-2">
+                                            <img
+                                                src={upiQrUrl}
+                                                alt="UPI QR Code"
+                                                className="h-full w-full object-contain"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#C8A96A]">
+                                                Official UPI ID
+                                            </p>
+                                            <div className="mt-2 flex items-center gap-2 rounded-2xl border border-[#C8A96A]/10 bg-black/50 p-3">
+                                                <p className="min-w-0 flex-1 break-all text-sm font-bold text-[#F5E6C8]">
+                                                    {companyBankDetails.upiId}
+                                                </p>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleCopyUpi}
+                                                    className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#C8A96A]/20 bg-[#C8A96A]/10 text-[#C8A96A] transition hover:bg-[#C8A96A] hover:text-[#0D0D0D]"
+                                                    aria-label="Copy UPI ID"
+                                                >
+                                                    {upiCopied ? <CheckCircle2 size={16} /> : <Copy size={16} />}
+                                                </button>
+                                            </div>
+                                            <p className="mt-3 text-[10px] font-medium leading-relaxed text-[#F5E6C8]/45">
+                                                Scan the QR code or copy the UPI ID to complete your payment. This option displays manual payment details only.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
                     <button
                         onClick={() => onConfirm(payMethod)}
-                        disabled={loading || (payMethod === 'wallet' && currentBalance < pkg.price)}
+                        disabled={loading || payMethod === 'upi' || (payMethod === 'wallet' && currentBalance < pkg.price)}
                         className="group relative h-14 w-full overflow-hidden rounded-2xl bg-[#C8A96A] text-[13px] font-black uppercase tracking-[0.2em] text-[#0D0D0D] transition-transform active:scale-[0.98] disabled:opacity-50 disabled:grayscale"
                     >
                         <div className="flex items-center justify-center gap-2">
@@ -274,12 +347,18 @@ const ConfirmModal = ({ pkg, currentBalance, onConfirm, onCancel, loading }) => 
                                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/20 border-t-white" />
                             ) : (
                                 <>
-                                    <span>Proceed to Pay</span>
+                                    <span>{payMethod === 'upi' ? 'Manual UPI Payment' : 'Proceed to Pay'}</span>
                                     <ArrowRight size={18} className="translate-x-0 transition-transform group-hover:translate-x-1" />
                                 </>
                             )}
                         </div>
                     </button>
+
+                    {payMethod === 'upi' && (
+                        <p className="mt-3 text-[10px] font-medium uppercase tracking-[0.14em] text-[#F5E6C8]/35">
+                            QR / UPI shows manual payment details only. Razorpay and E-Wallet continue to work as usual.
+                        </p>
+                    )}
 
                     <button
                         onClick={onCancel}
@@ -290,6 +369,7 @@ const ConfirmModal = ({ pkg, currentBalance, onConfirm, onCancel, loading }) => 
                     </button>
                 </div>
             </Motion.div>
+            </div>
         </div>
     );
 };
@@ -333,8 +413,15 @@ const PackageUpgrade = () => {
                 });
                 if (!orderData || !orderData.id) throw new Error('Payment order creation failed');
 
+                const razorpayKeyId = resolveRazorpayKeyId(orderData?.key);
+                if (!razorpayKeyId) {
+                    toast.error('Payment configuration error. Please contact support.');
+                    setActivating(false);
+                    return;
+                }
+
                 const options = {
-                    key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_SQbbsEM3Dlfgi2', // Fallback for local testing
+                    key: razorpayKeyId,
                     amount: orderData.amount,
                     currency: "INR",
                     name: "Sanyukt Parivaar",

@@ -13,6 +13,11 @@ const IdCard = () => {
         }
     });
     const [downloadLoading, setDownloadLoading] = useState(false);
+    const isActive = Boolean(userData?.activeStatus);
+    const statusText = isActive ? 'Active' : 'Inactive';
+    const joinedDate = userData?.createdAt
+        ? new Date(userData.createdAt).toLocaleDateString('en-GB')
+        : '-';
 
     const handleDownload = async () => {
         if (downloadLoading) return;
@@ -22,11 +27,13 @@ const IdCard = () => {
 
         try {
             const initialsValue = (userData?.userName || 'U').charAt(0).toUpperCase();
-            const joinedDate = userData?.createdAt
-                ? new Date(userData.createdAt).toLocaleDateString('en-GB')
-                : '-';
-            const statusText = userData?.activeStatus ? 'Active Member' : 'Registered';
             const cardContent = document.createElement('div');
+            const statusBadgeStyles = isActive
+                ? 'background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d;'
+                : 'background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c;';
+            const activeTickMarkup = isActive
+                ? `<span style="display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 999px; background: #ffffff; color: #16a34a; font-size: 12px; font-weight: 700;">✓</span>`
+                : '';
 
             cardContent.innerHTML = `
                 <div style="padding: 28px; background: #ffffff; width: 420px; margin: 0 auto; font-family: Arial, sans-serif;">
@@ -35,7 +42,7 @@ const IdCard = () => {
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div>
                                     <p style="margin: 0; font-size: 12px; font-weight: 500; color: #dcfce7;">Sanyukt Parivaar</p>
-                                    <h2 style="margin: 4px 0 0; font-size: 15px; font-weight: 700; color: #ffffff; letter-spacing: 0.04em;">MEMBERSHIP CARD</h2>
+                                    <h2 style="margin: 4px 0 0; font-size: 15px; font-weight: 700; color: #ffffff; letter-spacing: 0.04em; display: flex; align-items: center; gap: 6px;">MEMBERSHIP CARD ${activeTickMarkup}</h2>
                                 </div>
                                 <div style="font-size: 18px; color: #ffffff;">&#128737;</div>
                             </div>
@@ -53,7 +60,7 @@ const IdCard = () => {
                                 <div style="flex: 1; min-width: 0;">
                                     <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #111827;">${userData?.userName || 'Member Name'}</h3>
                                     <p style="margin: 6px 0 0; font-size: 13px; color: #374151;">${userData?.email || 'email@example.com'}</p>
-                                    <div style="margin-top: 10px; display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; background: #f0fdf4; border: 1px solid #bbf7d0; font-size: 12px; font-weight: 600; color: #15803d;">
+                                    <div style="margin-top: 10px; display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; ${statusBadgeStyles}">
                                         ${statusText}
                                     </div>
                                 </div>
@@ -74,7 +81,7 @@ const IdCard = () => {
                                 </div>
                                 <div style="padding-bottom: 8px; border-bottom: 1px solid #f3f4f6;">
                                     <p style="margin: 0; font-size: 12px; color: #6b7280;">Joined</p>
-                                    <p style="margin: 6px 0 0; font-size: 15px; font-weight: 700; color: #111827;">${joinedDate}</p>
+                                <p style="margin: 6px 0 0; font-size: 15px; font-weight: 700; color: #111827;">${joinedDate}</p>
                                 </div>
                             </div>
 
@@ -144,7 +151,11 @@ const IdCard = () => {
                                 <p className="text-xs font-medium text-green-100">Sanyukt Parivaar</p>
                                 <h2 className="text-sm font-bold text-white flex items-center gap-1">
                                     MEMBERSHIP CARD
-                                    {userData?.activeStatus && <CheckCircle className="w-4 h-4 text-white fill-green-600" />}
+                                    {isActive && (
+                                        <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-white">
+                                            <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                                        </span>
+                                    )}
                                 </h2>
                             </div>
                             <div className="text-white opacity-80">
@@ -180,8 +191,9 @@ const IdCard = () => {
                                 <p className="text-[13px] text-gray-700 mt-0.5 truncate">
                                     {userData?.email || 'email@example.com'}
                                 </p>
-                                <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-100">
-                                    {userData?.activeStatus ? 'Active Member' : 'Registered'}
+                                <div className={`mt-2 inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${isActive ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
+                                    {isActive && <CheckCircle className="h-3.5 w-3.5 text-green-600" />}
+                                    {statusText}
                                 </div>
                             </div>
                         </div>
@@ -203,7 +215,7 @@ const IdCard = () => {
                             <div className="border-b border-gray-100 pb-2">
                                 <p className="text-[12px] text-gray-700">Joined</p>
                                 <p className="text-[15px] font-semibold text-gray-900 mt-0.5">
-                                    {userData?.createdAt ? new Date(userData.createdAt).toLocaleDateString('en-GB') : '-'}
+                                    {joinedDate}
                                 </p>
                             </div>
                         </div>

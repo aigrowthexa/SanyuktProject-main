@@ -97,7 +97,7 @@ exports.deleteUser = async (req, res) => {
 // UPDATE user
 exports.updateUser = async (req, res) => {
     try {
-        const { name, userName, email, role, status, phone, kycStatus, kycMessage } = req.body;
+        const { name, userName, email, role, status, activeStatus, phone, kycStatus, kycMessage } = req.body;
 
         // Check if user exists
         const user = await User.findById(req.params.id);
@@ -123,8 +123,12 @@ exports.updateUser = async (req, res) => {
         user.userName = userName || name || user.userName || user.name;
         user.email = email || user.email;
         user.role = role || user.role;
-        user.status = status || user.status;
         user.phone = phone || user.phone;
+        if (typeof activeStatus === "boolean") {
+            user.activeStatus = activeStatus;
+        } else if (status) {
+            user.activeStatus = status === "active";
+        }
         if (kycStatus) user.kycStatus = kycStatus;
         if (kycMessage !== undefined) user.kycMessage = kycMessage;
 
@@ -167,7 +171,7 @@ exports.updateUserStatus = async (req, res) => {
             });
         }
 
-        user.status = status;
+        user.activeStatus = status === 'active';
         await user.save();
 
         res.json({
@@ -175,7 +179,8 @@ exports.updateUserStatus = async (req, res) => {
             message: "User status updated successfully",
             user: {
                 id: user._id,
-                status: user.status
+                activeStatus: user.activeStatus,
+                status: user.activeStatus ? 'active' : 'inactive'
             }
         });
     } catch (error) {

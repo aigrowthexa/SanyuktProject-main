@@ -187,6 +187,14 @@ const ProductsPage = () => {
     };
 
     // इमेज URL बनाने के लिए फंक्शन
+    const getProductImages = (product) => {
+        if (!product) return [];
+        if (Array.isArray(product.images) && product.images.length > 0) {
+            return product.images.filter(Boolean).slice(0, 2);
+        }
+        return product.image ? [product.image] : [];
+    };
+
     const getImageUrl = (imageName) => {
         if (!imageName) return null;
         if (imageName.startsWith('http')) return imageName;
@@ -277,8 +285,9 @@ const ProductsPage = () => {
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 font-bold">
                         {filteredProducts.map((product, index) => {
                             const discount = calculateDiscount(product.price, product.oldPrice);
-                            const hasImageError = imageErrors[product._id];
-                            const imageUrl = getImageUrl(product.image);
+                            const productImages = getProductImages(product);
+                            const coverImage = productImages[0];
+                            const coverImageError = imageErrors[product._id];
 
                             return (
                                 <div
@@ -288,9 +297,9 @@ const ProductsPage = () => {
                                 >
                                     {/* Product Image */}
                                     <div className="relative h-32 md:h-44 bg-[#0D0D0D] overflow-hidden">
-                                        {product.image && !hasImageError ? (
+                                        {coverImage && !coverImageError ? (
                                             <img
-                                                src={imageUrl}
+                                                src={getImageUrl(coverImage)}
                                                 alt={product.name}
                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 opacity-80 group-hover:opacity-100"
                                                 onError={() => handleImageError(product._id)}

@@ -1,11 +1,40 @@
 const Product = require("../models/Product");
 
+const getUploadedImages = (req) => {
+    const directImages = Array.isArray(req.files?.images)
+        ? req.files.images.map((file) => file.filename)
+        : [];
+    const legacyImage = Array.isArray(req.files?.image)
+        ? req.files.image.map((file) => file.filename)
+        : [];
+
+    return (directImages.length ? directImages : legacyImage).slice(0, 2);
+};
+
+const parseExistingImages = (value) => {
+    if (value === undefined) return undefined;
+    if (Array.isArray(value)) return value.filter(Boolean).slice(0, 2);
+
+    if (typeof value === "string") {
+        try {
+            const parsed = JSON.parse(value);
+            return Array.isArray(parsed) ? parsed.filter(Boolean).slice(0, 2) : [];
+        } catch (error) {
+            return value ? [value].slice(0, 2) : [];
+        }
+    }
+
+    return [];
+};
+
 // CREATE PRODUCT WITH IMAGE
 exports.createProduct = async (req, res) => {
     try {
+        const uploadedImages = getUploadedImages(req);
         const product = new Product({
             ...req.body,
-            image: req.file ? req.file.filename : "",
+            image: uploadedImages[0] || "",
+            images: uploadedImages,
         });
 
         await product.save();
@@ -68,9 +97,19 @@ exports.updateProduct = async (req, res) => {
         const updateData = {
             ...req.body,
         };
+        delete updateData.existingImages;
 
-        if (req.file) {
-            updateData.image = req.file.filename;
+        const uploadedImages = getUploadedImages(req);
+        const existingImages = parseExistingImages(req.body.existingImages);
+
+        if (existingImages !== undefined || uploadedImages.length) {
+            const mergedImages = [
+                ...(existingImages || []),
+                ...uploadedImages,
+            ].filter(Boolean).slice(0, 2);
+
+            updateData.image = mergedImages[0] || "";
+            updateData.images = mergedImages;
         }
 
         const product = await Product.findByIdAndUpdate(

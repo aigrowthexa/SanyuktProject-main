@@ -8,8 +8,8 @@ const AdminProducts = () => {
     const [editingId, setEditingId] = useState(null);
     const [loading, setLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
-    const [imagePreview, setImagePreview] = useState(null);
-    const [selectedImage, setSelectedImage] = useState(null);
+    const [existingImages, setExistingImages] = useState([]);
+    const [selectedImages, setSelectedImages] = useState([]);
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
@@ -59,6 +59,31 @@ const AdminProducts = () => {
         return `${API_URL}${normalizedPath}`;
     };
 
+    const getProductImages = (product) => {
+        if (!product) return [];
+        if (Array.isArray(product.images) && product.images.length > 0) {
+            return product.images.filter(Boolean).slice(0, 2);
+        }
+        return product.image ? [product.image] : [];
+    };
+
+    const totalSelectedImages = existingImages.length + selectedImages.length;
+    const remainingImageSlots = Math.max(0, 2 - totalSelectedImages);
+    const previewItems = [
+        ...existingImages.map((image, index) => ({
+            type: "existing",
+            index,
+            name: String(image).split("/").pop(),
+            preview: getProductImageUrl(image),
+        })),
+        ...selectedImages.map((item, index) => ({
+            type: "new",
+            index,
+            name: item.file.name,
+            preview: item.preview,
+        })),
+    ];
+
     const fetchProducts = async () => {
         setLoading(true);
         try {
@@ -92,16 +117,40 @@ const AdminProducts = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setSelectedImage(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result);
-            };
-            reader.readAsDataURL(file);
+    const handleImageChange = async (e) => {
+        const files = Array.from(e.target.files || []);
+        const filesToAdd = files.slice(0, remainingImageSlots);
+
+        if (!filesToAdd.length) {
+            e.target.value = "";
+            return;
         }
+
+        const newItems = await Promise.all(
+            filesToAdd.map(
+                (file) =>
+                    new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve({
+                            file,
+                            preview: reader.result,
+                        });
+                        reader.readAsDataURL(file);
+                    })
+            )
+        );
+
+        setSelectedImages((prev) => [...prev, ...newItems].slice(0, Math.max(0, 2 - existingImages.length)));
+        e.target.value = "";
+    };
+
+    const handleRemoveImage = (type, index) => {
+        if (type === "existing") {
+            setExistingImages((prev) => prev.filter((_, itemIndex) => itemIndex !== index));
+            return;
+        }
+
+        setSelectedImages((prev) => prev.filter((_, itemIndex) => itemIndex !== index));
     };
 
     const resetForm = () => {
@@ -118,8 +167,8 @@ const AdminProducts = () => {
             isFeatured: false,
             paymentMethods: ["cod", "upi", "card"],
         });
-        setSelectedImage(null);
-        setImagePreview(null);
+        setExistingImages([]);
+        setSelectedImages([]);
         setEditingId(null);
         setShowForm(false);
     };
@@ -143,9 +192,11 @@ const AdminProducts = () => {
             }
         });
 
-        if (selectedImage) {
-            formDataToSend.append("image", selectedImage);
-        }
+        formDataToSend.append("existingImages", JSON.stringify(existingImages));
+
+        selectedImages.forEach((imageItem) => {
+            formDataToSend.append("images", imageItem.file);
+        });
 
         try {
             if (editingId) {
@@ -186,9 +237,8 @@ const AdminProducts = () => {
             paymentMethods: product.paymentMethods || ["cod", "upi", "card"],
         });
 
-        setImagePreview(getProductImageUrl(product.image));
-
-        setSelectedImage(null);
+        setExistingImages(getProductImages(product));
+        setSelectedImages([]);
         setShowForm(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -438,7 +488,7 @@ const AdminProducts = () => {
                             {/* Image Upload */}
                             <div className="space-y-4 lg:col-span-3 bg-[#0D0D0D] p-6 rounded-xl border border-[#C8A96A]/20">
                                 <label className="text-[10px] uppercase font-black tracking-widest text-[#C8A96A]/80 block">
-                                    Product Cover Image
+                                    Product Images (Max 2)
                                 </label>
                                 <div className="flex flex-col md:flex-row gap-8 items-start">
                                     <div>
@@ -446,42 +496,57 @@ const AdminProducts = () => {
                                             type="file"
                                             id="image-upload"
                                             accept="image/*"
+                                            multiple
+                                            disabled={remainingImageSlots === 0}
                                             onChange={handleImageChange}
                                             className="hidden"
                                         />
                                         <label
                                             htmlFor="image-upload"
-                                            className="inline-flex items-center gap-3 px-6 py-3 bg-[#C8A96A]/10 text-[#C8A96A] border border-[#C8A96A]/30 rounded-xl cursor-pointer hover:bg-[#C8A96A] hover:text-[#0D0D0D] transition-all font-bold text-xs uppercase tracking-widest"
+                                            className={`inline-flex items-center gap-3 px-6 py-3 border rounded-xl transition-all font-bold text-xs uppercase tracking-widest ${remainingImageSlots === 0
+                                                ? "bg-[#121212] text-[#C8A96A]/35 border-[#C8A96A]/15 cursor-not-allowed"
+                                                : "bg-[#C8A96A]/10 text-[#C8A96A] border-[#C8A96A]/30 cursor-pointer hover:bg-[#C8A96A] hover:text-[#0D0D0D]"
+                                                }`}
                                         >
                                             <ImageIcon size={16} />
-                                            {selectedImage ? "Change Image" : "Upload File"}
+                                            {totalSelectedImages ? "Add More Images" : "Upload Files"}
                                         </label>
-                                        {selectedImage && (
-                                            <p className="text-[10px] text-[#C8A96A]/60 mt-3 font-mono break-all max-w-[200px]">
-                                                {selectedImage.name}
-                                            </p>
-                                        )}
+                                        <p className="text-[10px] text-[#C8A96A]/60 mt-3 font-mono max-w-[220px]">
+                                            {remainingImageSlots > 0
+                                                ? `${remainingImageSlots} image slot left`
+                                                : "Maximum 2 images selected"}
+                                        </p>
                                     </div>
 
                                     {/* Image Preview */}
-                                    {imagePreview && (
-                                        <div className="relative group rounded-xl overflow-hidden border border-[#C8A96A]/30 bg-[#121212]">
-                                            <img
-                                                src={imagePreview}
-                                                alt="Preview"
-                                                className="w-32 h-32 md:w-48 md:h-48 object-cover opacity-90 group-hover:opacity-100 transition-opacity"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setSelectedImage(null);
-                                                    setImagePreview(null);
-                                                    document.getElementById("image-upload").value = "";
-                                                }}
-                                                className="absolute top-2 right-2 w-8 h-8 bg-[#0D0D0D]/80 backdrop-blur-sm border border-[#C8A96A]/30 text-[#F5E6C8] rounded-full hover:bg-red-900/50 hover:text-red-400 hover:border-red-500/50 flex items-center justify-center transition-all"
-                                            >
-                                                <X size={14} strokeWidth={2.5} />
-                                            </button>
+                                    {previewItems.length > 0 && (
+                                        <div className={`grid gap-4 ${previewItems.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+                                            {previewItems.map((item) => (
+                                                <div key={`${item.type}-${item.index}-${item.name}`} className="relative group rounded-xl overflow-hidden border border-[#C8A96A]/30 bg-[#121212]">
+                                                    <img
+                                                        src={item.preview}
+                                                        alt={item.name}
+                                                        className="w-32 h-32 md:w-40 md:h-40 object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                                                    />
+                                                    <div className="px-3 py-2 border-t border-[#C8A96A]/10 bg-[#0D0D0D]">
+                                                        <p className="text-[10px] text-[#C8A96A]/70 font-mono break-all max-w-[150px]">
+                                                            {item.name}
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveImage(item.type, item.index)}
+                                                        className="absolute top-2 right-2 w-8 h-8 bg-[#0D0D0D]/90 backdrop-blur-sm border border-[#C8A96A]/30 text-[#F5E6C8] rounded-full hover:bg-red-900/50 hover:text-red-400 hover:border-red-500/50 flex items-center justify-center transition-all"
+                                                    >
+                                                        <X size={14} strokeWidth={2.5} />
+                                                    </button>
+                                                    {item.type === "existing" && (
+                                                        <span className="absolute top-2 left-2 px-2 py-1 rounded bg-[#0D0D0D]/80 text-[#C8A96A] text-[9px] font-black uppercase tracking-widest border border-[#C8A96A]/20">
+                                                            Saved
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            ))}
                                         </div>
                                     )}
                                 </div>
@@ -544,11 +609,14 @@ const AdminProducts = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {displayedProducts.map((product) => (
-                            <div
-                                key={product._id}
-                                className="group relative bg-[#0D0D0D] rounded-xl border border-[#C8A96A]/20 overflow-hidden hover:border-[#C8A96A]/50 transition-all duration-500 hover:shadow-[0_10px_30px_rgba(0,0,0,0.8)]"
-                            >
+                        {displayedProducts.map((product) => {
+                            const productImages = getProductImages(product);
+
+                            return (
+                                <div
+                                    key={product._id}
+                                    className="group relative bg-[#0D0D0D] rounded-xl border border-[#C8A96A]/20 overflow-hidden hover:border-[#C8A96A]/50 transition-all duration-500 hover:shadow-[0_10px_30px_rgba(0,0,0,0.8)]"
+                                >
                                 {/* Featured Ribbon */}
                                 {product.isFeatured && (
                                     <div className="absolute top-4 -right-10 bg-[#C8A96A] text-[#0D0D0D] text-[9px] font-black uppercase tracking-widest py-1 px-10 transform rotate-45 z-10 shadow-lg">
@@ -558,20 +626,35 @@ const AdminProducts = () => {
 
                                 {/* Product Image */}
                                 <div className="relative aspect-[4/3] overflow-hidden bg-[#121212] border-b border-[#C8A96A]/10">
-                                    {product.image ? (
-                                        <img
-                                            src={getProductImageUrl(product.image)}
-                                            alt={product.name}
-                                            className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
-                                            onError={(e) => {
-                                                e.target.onerror = null;
-                                                e.target.src = "https://via.placeholder.com/300x200/121212/C8A96A?text=Missing+Image";
-                                            }}
-                                        />
+                                    {productImages.length > 0 ? (
+                                        <div className={`grid h-full ${productImages.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+                                            {productImages.map((image, index) => (
+                                                <div
+                                                    key={`${product._id}-image-${index}`}
+                                                    className={index === 0 ? "" : "border-l border-[#C8A96A]/10"}
+                                                >
+                                                    <img
+                                                        src={getProductImageUrl(image)}
+                                                        alt={`${product.name} ${index + 1}`}
+                                                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
+                                                        onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.src = "https://via.placeholder.com/300x200/121212/C8A96A?text=Missing+Image";
+                                                        }}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
                                     ) : (
                                         <div className="w-full h-full flex flex-col items-center justify-center text-[#C8A96A]/20">
                                             <ImageIcon size={48} strokeWidth={1} />
                                             <p className="text-[10px] uppercase font-bold tracking-widest mt-2">No Visual</p>
+                                        </div>
+                                    )}
+
+                                    {productImages.length > 1 && (
+                                        <div className="absolute top-3 left-3 px-2 py-1 rounded bg-[#0D0D0D]/80 text-[#C8A96A] text-[9px] font-black uppercase tracking-widest border border-[#C8A96A]/20 backdrop-blur-md">
+                                            2 Images
                                         </div>
                                     )}
 
@@ -644,8 +727,9 @@ const AdminProducts = () => {
                                         {product.description}
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
 

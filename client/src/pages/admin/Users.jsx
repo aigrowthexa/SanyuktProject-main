@@ -1,12 +1,24 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../../api";
+import api, { API_URL } from "../../api";
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     Typography, Grid, Box, TextField, Divider, Paper
 } from '@mui/material';
 import { RefreshCw, Trash2, Edit2, ShieldAlert, CheckCircle, User as UserIcon, Lock, Save, X, Activity } from 'lucide-react';
 import Pagination from "../../components/admin/Pagination";
+
+const resolveMediaUrl = (value) => {
+    const rawValue = String(value || '').trim();
+    if (!rawValue) return '';
+    if (rawValue.startsWith('data:') || rawValue.startsWith('http://') || rawValue.startsWith('https://')) {
+        return rawValue;
+    }
+    if (rawValue.startsWith('/uploads')) {
+        return `${API_URL}${rawValue}`;
+    }
+    return `${API_URL}/uploads/${rawValue}`;
+};
 
 const AdminUsers = () => {
     const navigate = useNavigate();
@@ -107,7 +119,7 @@ const AdminUsers = () => {
             userName: user.userName || user.name || "",
             email: user.email || "",
             role: user.role || "user",
-            status: user.status || (user.activeStatus ? "active" : "inactive")
+            status: user.activeStatus ? "active" : "inactive"
         });
     };
 
@@ -127,6 +139,19 @@ const AdminUsers = () => {
             } else {
                 setError("Update failed.");
             }
+        }
+    };
+
+    const handleToggleUserStatus = async (user) => {
+        const nextStatus = user.activeStatus ? 'inactive' : 'active';
+
+        try {
+            setError("");
+            await api.patch(`/admin/users/${user._id}/status`, { status: nextStatus });
+            fetchUsers();
+        } catch (error) {
+            console.error("Toggle status error:", error.response?.data || error.message);
+            setError("Failed to update user status.");
         }
     };
 
@@ -274,7 +299,7 @@ const AdminUsers = () => {
                         {[
                             { label: 'Total Users', value: users.length, icon: Activity },
                             { label: 'Admins', value: users.filter(u => u.role === 'admin').length, icon: Lock },
-                            { label: 'Active Users', value: users.filter(u => (u.status || (u.activeStatus ? 'active' : 'inactive')) === 'active').length, icon: CheckCircle },
+                            { label: 'Active Users', value: users.filter(u => u.activeStatus).length, icon: CheckCircle },
                             { label: 'Pending KYC', value: users.filter(u => u.kycStatus === 'Pending').length, icon: RefreshCw }
                         ].map((stat, i) => (
                             <div key={i} className="luxury-box p-6 flex items-center gap-5 group hover:border-[#C8A96A]/60 transition-all duration-500">
@@ -302,7 +327,7 @@ const AdminUsers = () => {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-[#0D0D0D] border-b border-[#C8A96A]/30">
-                                        {['Name', 'Email', 'Role', 'Status', 'KYC', 'Actions'].map((head, i) => (
+                                        {['Name', 'Member ID', 'Email', 'Role', 'Status', 'KYC', 'Actions'].map((head, i) => (
                                             <th key={i} className="p-5 text-[10px] font-black text-[#C8A96A] uppercase tracking-[0.2em] whitespace-nowrap">
                                                 {head}
                                             </th>
@@ -312,7 +337,7 @@ const AdminUsers = () => {
                                 <tbody>
                                     {users.length === 0 ? (
                                         <tr>
-                                            <td colSpan="6" className="p-16 text-center text-[#F5E6C8]/40 font-medium">
+                                            <td colSpan="7" className="p-16 text-center text-[#F5E6C8]/40 font-medium">
                                                 No users found.
                                             </td>
                                         </tr>
@@ -331,6 +356,11 @@ const AdminUsers = () => {
                                                     ) : (
                                                         <span className="font-bold text-[#F5E6C8]">{user.userName || user.name || "Unknown"}</span>
                                                     )}
+                                                </td>
+                                                <td className="p-5">
+                                                    <span className="text-[#C8A96A] text-sm font-bold uppercase tracking-wide">
+                                                        {user.memberId || "N/A"}
+                                                    </span>
                                                 </td>
                                                 <td className="p-5">
                                                     {editingUser === user._id ? (
@@ -373,13 +403,12 @@ const AdminUsers = () => {
                                                         >
                                                             <option value="active">Active</option>
                                                             <option value="inactive">Inactive</option>
-                                                            <option value="pending">Pending</option>
                                                         </select>
                                                     ) : (
                                                         <div className="flex items-center gap-2">
-                                                            <div className={`w-1.5 h-1.5 rounded-full ${(user.status || (user.activeStatus ? 'active' : 'inactive')) === 'active' ? 'bg-[#C8A96A] animate-pulse' : 'bg-red-500'}`}></div>
-                                                            <span className={`px-2 py-0.5 text-[9px] uppercase tracking-widest border rounded-full ${getStatusBadge(user.status || (user.activeStatus ? 'active' : 'inactive'))}`}>
-                                                                {user.status || (user.activeStatus ? "active" : "inactive")}
+                                                            <div className={`w-1.5 h-1.5 rounded-full ${user.activeStatus ? 'bg-[#C8A96A] animate-pulse' : 'bg-red-500'}`}></div>
+                                                            <span className={`px-2 py-0.5 text-[9px] uppercase tracking-widest border rounded-full ${getStatusBadge(user.activeStatus ? 'active' : 'inactive')}`}>
+                                                                {user.activeStatus ? "active" : "inactive"}
                                                             </span>
                                                         </div>
                                                     )}
@@ -403,6 +432,13 @@ const AdminUsers = () => {
                                                         <div className="flex gap-3">
                                                             <button onClick={() => handleEditClick(user)} className="text-[#C8A96A]/60 hover:text-[#C8A96A] transition-colors" title="Edit">
                                                                 <Edit2 className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleToggleUserStatus(user)}
+                                                                className={`${user.activeStatus ? 'text-red-500/70 hover:text-red-400' : 'text-emerald-500/70 hover:text-emerald-400'} transition-colors`}
+                                                                title={user.activeStatus ? "Set Inactive" : "Set Active"}
+                                                            >
+                                                                <CheckCircle className="w-4 h-4" />
                                                             </button>
                                                             <button onClick={() => handleOpenKyc(user)} className="text-[#D4AF37]/60 hover:text-[#D4AF37] transition-colors" title="KYC">
                                                                 <Activity className="w-4 h-4" />
@@ -537,26 +573,31 @@ const AdminUsers = () => {
                                 </div>
                             </Grid>
 
-                            {['aadharFront', 'aadharBack', 'panCard', 'passbook'].map((docKey) => (
-                                <Grid item xs={12} sm={6} md={3} key={docKey}>
-                                    <div className="bg-[#0D0D0D] p-3 rounded-xl border border-[#C8A96A]/10 text-center h-32 flex flex-col items-center justify-center hover:border-[#C8A96A]/40 transition-colors group">
-                                        <Typography variant="caption" sx={{ mb: 2, display: 'block', color: '#F5E6C8', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                                            {docKey.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                                        </Typography>
-                                        {selectedUserForKyc.kycDocuments?.[docKey] ? (
-                                            <a href={selectedUserForKyc.kycDocuments[docKey]} target="_blank" rel="noreferrer" className="relative overflow-hidden rounded-lg group-hover:shadow-[0_0_15px_rgba(200,169,106,0.3)] transition-all">
-                                                <img
-                                                    src={selectedUserForKyc.kycDocuments[docKey]}
-                                                    alt={docKey}
-                                                    className="max-h-[60px] max-w-full object-contain filter group-hover:brightness-110 transition-all opacity-80 group-hover:opacity-100"
-                                                />
-                                            </a>
-                                        ) : (
-                                            <Typography variant="body2" sx={{ color: 'rgba(245, 230, 200, 0.2)', fontStyle: 'italic', fontSize: '11px' }}>Not Found</Typography>
-                                        )}
-                                    </div>
-                                </Grid>
-                            ))}
+                            {['aadharFront', 'aadharBack', 'panCard', 'passbook'].map((docKey) => {
+                                const rawDocValue = selectedUserForKyc.kycDocuments?.[docKey];
+                                const docUrl = resolveMediaUrl(rawDocValue);
+
+                                return (
+                                    <Grid item xs={12} sm={6} md={3} key={docKey}>
+                                        <div className="bg-[#0D0D0D] p-3 rounded-xl border border-[#C8A96A]/10 text-center h-32 flex flex-col items-center justify-center hover:border-[#C8A96A]/40 transition-colors group">
+                                            <Typography variant="caption" sx={{ mb: 2, display: 'block', color: '#F5E6C8', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                                                {docKey.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                                            </Typography>
+                                            {docUrl ? (
+                                                <a href={docUrl} target="_blank" rel="noreferrer" className="relative overflow-hidden rounded-lg group-hover:shadow-[0_0_15px_rgba(200,169,106,0.3)] transition-all">
+                                                    <img
+                                                        src={docUrl}
+                                                        alt={docKey}
+                                                        className="max-h-[60px] max-w-full object-contain filter group-hover:brightness-110 transition-all opacity-80 group-hover:opacity-100"
+                                                    />
+                                                </a>
+                                            ) : (
+                                                <Typography variant="body2" sx={{ color: 'rgba(245, 230, 200, 0.2)', fontStyle: 'italic', fontSize: '11px' }}>Not Found</Typography>
+                                            )}
+                                        </div>
+                                    </Grid>
+                                );
+                            })}
 
                             {isRejecting && (
                                 <Grid item xs={12}>

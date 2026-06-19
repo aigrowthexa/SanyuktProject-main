@@ -39,10 +39,12 @@ const getStoredUser = () => {
 
 export default function PlaceOrderPage() {
     const storedUser = getStoredUser();
+    const loggedInMemberId = storedUser?.memberId || '';
+    const loggedInUserName = storedUser?.userName || storedUser?.name || '';
     const [productsList, setProductsList] = useState([]);
     const [productsLoading, setProductsLoading] = useState(true);
-    const [directSellerId, setDirectSellerId] = useState('');
-    const [name, setName] = useState('');
+    const [directSellerId, setDirectSellerId] = useState(loggedInMemberId);
+    const [name, setName] = useState(loggedInUserName);
     const [selectedProduct, setSelectedProduct] = useState('');
     const [quantity, setQuantity] = useState(1);
     const [cart, setCart] = useState([]);
@@ -203,8 +205,8 @@ export default function PlaceOrderPage() {
         setPayFrom('');
         setOrderTo('');
         setAccountPassword('');
-        setDirectSellerId('');
-        setName('');
+        setDirectSellerId(loggedInMemberId);
+        setName(loggedInUserName);
         setFeedback({
             type: 'success',
             message: data?.message || 'First purchase order placed successfully.',
@@ -236,13 +238,14 @@ export default function PlaceOrderPage() {
                 <SectionCard icon={PackagePlus} title="Add Products">
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div>
-                            <label className={fieldLabelClass}>Direct Seller ID</label>
+                            <label className={fieldLabelClass}>Member ID</label>
                             <input
                                 type="text"
                                 value={directSellerId}
                                 onChange={(e) => setDirectSellerId(e.target.value)}
-                                placeholder="Enter Direct Seller ID"
+                                placeholder="Member ID"
                                 className={fieldClass}
+                                readOnly
                             />
                         </div>
 
@@ -252,8 +255,9 @@ export default function PlaceOrderPage() {
                                 type="text"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                placeholder="Enter name"
+                                placeholder="Member Name"
                                 className={fieldClass}
+                                readOnly
                             />
                         </div>
 

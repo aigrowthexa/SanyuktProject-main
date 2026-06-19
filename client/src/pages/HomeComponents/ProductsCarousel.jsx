@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion as Motion } from 'framer-motion';
-import { ChevronDown, ChevronRight, ShoppingCart, Star, ArrowRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, ShoppingCart, Star } from 'lucide-react';
 import { API_URL } from '../../api';
 
 const ProductsCarousel = ({
@@ -16,10 +16,24 @@ const ProductsCarousel = ({
     onProductClick,
     handleNavigation
 }) => {
+    const getProductImages = (item) => {
+        if (!item) return [];
+        if (Array.isArray(item.images) && item.images.length > 0) {
+            return item.images.filter(Boolean).slice(0, 2);
+        }
+        return item.image ? [item.image] : [];
+    };
+
+    const getImageUrl = (image) => {
+        if (!image) return null;
+        if (image.startsWith('http')) return image;
+        const path = image.startsWith('/uploads') ? image : `/uploads/${image}`;
+        return `${API_URL}${path}`;
+    };
+
     return (
-        <section className="py-2 md:py-5 bg-[#121212] relative overflow-hidden" >
+        <section className="py-2 md:py-5 bg-[#121212] relative overflow-hidden">
             <div className="container mx-auto px-4 relative z-10">
-                {/* Section Header */}
                 <div className="flex flex-col md:flex-row justify-between items-center mb-3 gap-4">
                     <div className="text-center md:text-left max-w-2xl">
                         <span className="text-[#C8A96A] font-bold text-[10px] tracking-widest uppercase mb-1 block">
@@ -34,7 +48,6 @@ const ProductsCarousel = ({
                         </p>
                     </div>
 
-                    {/* Custom Navigation - Right Corner */}
                     <div className="flex gap-2 flex-shrink-0">
                         <button
                             onClick={() => scroll('left')}
@@ -51,14 +64,12 @@ const ProductsCarousel = ({
                     </div>
                 </div>
 
-                {/* Products Carousel */}
                 <div
                     ref={carouselRef}
                     className="flex gap-4 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory scrollbar-hide no-scrollbar"
                     style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
                     {loading ? (
-                        /* Skeleton Loading State */
                         [...Array(6)].map((_, i) => (
                             <div key={i} className="min-w-[200px] sm:min-w-[220px] md:min-w-[240px] snap-center">
                                 <div className="luxury-box h-72 animate-pulse flex flex-col">
@@ -83,18 +94,11 @@ const ProductsCarousel = ({
                             const bv = product.bv || 0;
                             const rating = product.rating || 5;
                             const reviews = product.numReviews || product.reviews || 0;
-                            const category = product.category || "General";
+                            const category = product.category || 'General';
                             const discount = calculateDiscount(oldPrice, price);
-
-                            // Image logic
-                            const getImageUrl = (image) => {
-                                if (!image) return null;
-                                if (image.startsWith('http')) return image;
-                                const path = image.startsWith('/uploads') ? image : `/uploads/${image}`;
-                                return `${API_URL}${path}`;
-                            };
-
-                            const imageUrl = getImageUrl(product.image);
+                            const productImages = getProductImages(product);
+                            const coverImage = productImages[0];
+                            const coverImageError = imageErrors[productId];
 
                             return (
                                 <div
@@ -105,37 +109,33 @@ const ProductsCarousel = ({
                                         whileHover={{ y: -6 }}
                                         className="luxury-box overflow-hidden transition-all duration-500 group relative"
                                     >
-                                        {/* Product Image Container */}
                                         <div
                                             className="relative h-32 overflow-hidden bg-[#0D0D0D] flex items-center justify-center cursor-pointer p-2"
                                             onClick={() => onProductClick(product)}
                                         >
-
-                                            {imageUrl && !imageErrors[productId] ? (
+                                            {coverImage && !coverImageError ? (
                                                 <Motion.img
                                                     whileHover={{ scale: 1.15 }}
-                                                    transition={{ duration: 0.8, ease: "easeOut" }}
-                                                    src={imageUrl}
+                                                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                                                    src={getImageUrl(coverImage)}
                                                     alt={product.name}
                                                     className="w-full h-full object-cover"
                                                     onError={() => handleImageError(productId)}
                                                 />
                                             ) : (
-                                                <div className="text-9xl grayscale group-hover:grayscale-0 transition-all duration-700 transform group-hover:scale-110">
-                                                    {product.fallbackIcon || "📦"}
+                                                <div className="text-[#C8A96A]/20 text-xs font-black uppercase tracking-widest">
+                                                    Product
                                                 </div>
                                             )}
 
-                                            {/* Top Utility Buttons */}
                                             <div className="absolute top-3 left-3 flex flex-col items-start gap-2 z-20">
-                                                {parseInt(discount) > 0 && (
+                                                {parseInt(discount, 10) > 0 && (
                                                     <span className="w-fit bg-gradient-to-r from-[#C8A96A] to-[#D4AF37] text-[#0D0D0D] text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-lg">
                                                         -{discount}%
                                                     </span>
                                                 )}
                                             </div>
 
-                                            {/* Action Float Area */}
                                             <div className="absolute bottom-3 right-3 z-20 opacity-0 transform translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
                                                 <button
                                                     onClick={(e) => {
@@ -149,7 +149,6 @@ const ProductsCarousel = ({
                                             </div>
                                         </div>
 
-                                        {/* Product Details */}
                                         <div
                                             className="p-3 cursor-pointer group/details"
                                             onClick={() => onProductClick(product)}
@@ -166,18 +165,18 @@ const ProductsCarousel = ({
                                                     {product.name}
                                                 </h3>
                                                 <span className="w-fit text-[11px] font-black bg-[#C8A96A]/10 text-[#C8A96A] px-1.5 py-0.5 rounded-md uppercase tracking-wider border border-[#C8A96A]/20">
-                                                    {category === "Beauty and cosmetic home based products" ? "Beauty & Cosmetics" : category}
+                                                    {category === 'Beauty and cosmetic home based products' ? 'Beauty & Cosmetics' : category}
                                                 </span>
                                             </div>
 
                                             <div className="flex items-center justify-between mt-2">
                                                 <div className="flex flex-col">
                                                     <span className="text-base font-bold text-[#C8A96A]">
-                                                        ₹{price}
+                                                        Rs {price}
                                                     </span>
                                                     {oldPrice > price && (
                                                         <span className="text-[#F5E6C8]/60 text-[10px] line-through font-medium">
-                                                            MRP ₹{oldPrice}
+                                                            MRP Rs {oldPrice}
                                                         </span>
                                                     )}
                                                 </div>
@@ -212,7 +211,6 @@ const ProductsCarousel = ({
                             );
                         })
                     ) : (
-                        /* Empty State */
                         <div className="w-full flex flex-col items-center justify-center py-12 text-center flex-shrink-0 min-w-full">
                             <div className="w-16 h-16 rounded-full bg-[#C8A96A]/5 flex items-center justify-center mb-4 border border-[#C8A96A]/10">
                                 <Star className="w-8 h-8 text-[#C8A96A]/20" />
@@ -224,7 +222,6 @@ const ProductsCarousel = ({
                 </div>
             </div>
 
-            {/* Decorative Elements */}
             <div className="absolute top-40 -right-20 w-80 h-80 bg-green-50 rounded-full blur-3xl opacity-50 z-0"></div>
             <div className="absolute bottom-40 -left-20 w-80 h-80 bg-orange-50 rounded-full blur-3xl opacity-50 z-0"></div>
 
