@@ -80,24 +80,63 @@ const CheckoutPage = () => {
         }
     }, [product, navigate]);
 
-    // Fetch User Profile to pre-fill form
+    // Fetch user profile + latest order to pre-fill checkout details
     useEffect(() => {
-        const fetchProfile = async () => {
+        const fetchCheckoutDefaults = async () => {
             try {
-                const { data } = await api.get('auth/profile');
-                if (data?.user) {
-                    setShippingInfo(prev => ({
-                        ...prev,
-                        fullName: data.user.name || '',
-                        email: data.user.email || '',
-                        phone: data.user.phone || ''
-                    }));
-                }
+                const [profileResult, ordersResult] = await Promise.allSettled([
+                    api.get('auth/profile'),
+                    api.get('/orders/myorders')
+                ]);
+
+                const profileUser =
+                    profileResult.status === 'fulfilled'
+                        ? profileResult.value.data?.user || profileResult.value.data || null
+                        : null;
+
+                const orderList =
+                    ordersResult.status === 'fulfilled' && Array.isArray(ordersResult.value.data)
+                        ? ordersResult.value.data
+                        : [];
+
+                const latestShipping =
+                    orderList.find((order) => order?.shippingInfo?.address)?.shippingInfo || {};
+
+                setShippingInfo((prev) => ({
+                    ...prev,
+                    fullName:
+                        latestShipping.fullName ||
+                        profileUser?.userName ||
+                        profileUser?.name ||
+                        prev.fullName ||
+                        '',
+                    email: latestShipping.email || profileUser?.email || prev.email || '',
+                    phone:
+                        latestShipping.phone ||
+                        profileUser?.mobile ||
+                        profileUser?.phone ||
+                        prev.phone ||
+                        '',
+                    address:
+                        latestShipping.address ||
+                        profileUser?.shippingAddress ||
+                        prev.address ||
+                        '',
+                    city:
+                        latestShipping.city ||
+                        profileUser?.district ||
+                        prev.city ||
+                        '',
+                    state: latestShipping.state || profileUser?.state || prev.state || '',
+                    pincode: latestShipping.pincode || profileUser?.pincode || prev.pincode || '',
+                    landmark: latestShipping.landmark || prev.landmark || '',
+                }));
             } catch (err) {
-                console.error('Error fetching profile:', err);
+                console.error('Error fetching checkout defaults:', err);
             }
         };
-        fetchProfile();
+
+        fetchCheckoutDefaults();
     }, []);
 
     if (!product) return null;
@@ -751,3 +790,4 @@ const CheckoutPage = () => {
 };
 
 export default CheckoutPage;
+

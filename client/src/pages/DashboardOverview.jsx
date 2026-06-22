@@ -171,7 +171,7 @@ const DashboardOverview = () => {
         downline: 0,
         activeDirects: 0,
     });
-    const [userData] = useState(() => {
+    const [userData, setUserData] = useState(() => {
         try {
             const raw = localStorage.getItem('user');
             return raw ? JSON.parse(raw) : null;
@@ -186,6 +186,7 @@ const DashboardOverview = () => {
 
             try {
                 const results = await Promise.allSettled([
+                    api.get('/profile'),
                     api.get('/mlm/get-stats'),
                     api.get('/mlm/get-directs'),
                     api.get('/mlm/get-team-list/left'),
@@ -194,14 +195,23 @@ const DashboardOverview = () => {
                     api.get('/mlm/matching-report/me'),
                 ]);
 
+                const profilePayload =
+                    results[0].status === 'fulfilled'
+                        ? results[0].value.data?.user || results[0].value.data || null
+                        : null;
                 const statsPayload =
-                    results[0].status === 'fulfilled' ? results[0].value.data || null : null;
-                const directs = results[1].status === 'fulfilled' ? toArray(results[1].value.data) : [];
-                const leftTeam = results[2].status === 'fulfilled' ? toArray(results[2].value.data) : [];
-                const rightTeam = results[3].status === 'fulfilled' ? toArray(results[3].value.data) : [];
-                const allTeam = results[4].status === 'fulfilled' ? toArray(results[4].value.data) : [];
+                    results[1].status === 'fulfilled' ? results[1].value.data || null : null;
+                const directs = results[2].status === 'fulfilled' ? toArray(results[2].value.data) : [];
+                const leftTeam = results[3].status === 'fulfilled' ? toArray(results[3].value.data) : [];
+                const rightTeam = results[4].status === 'fulfilled' ? toArray(results[4].value.data) : [];
+                const allTeam = results[5].status === 'fulfilled' ? toArray(results[5].value.data) : [];
                 const matchingPayload =
-                    results[5].status === 'fulfilled' ? results[5].value.data?.data || results[5].value.data || null : null;
+                    results[6].status === 'fulfilled' ? results[6].value.data?.data || results[6].value.data || null : null;
+
+                if (profilePayload) {
+                    setUserData(profilePayload);
+                    localStorage.setItem('user', JSON.stringify(profilePayload));
+                }
 
                 setStats(statsPayload);
                 setMatchingReport(matchingPayload);
@@ -357,3 +367,4 @@ const DashboardOverview = () => {
 };
 
 export default DashboardOverview;
+

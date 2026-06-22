@@ -18,6 +18,12 @@ const applyAdminActivationDefaults = (user) => {
     user.dailyCapping = SILVER_PACKAGE.dailyCapping;
 };
 
+const applyAdminInactivationDefaults = (user) => {
+    user.activeStatus = false;
+    user.packageType = "none";
+    user.dailyCapping = 0;
+};
+
 const reconcileAdminActivation = async (user, wasActive) => {
     if (!user || wasActive || !user.activeStatus) {
         return;
@@ -174,13 +180,13 @@ exports.updateUser = async (req, res) => {
             if (activeStatus) {
                 applyAdminActivationDefaults(user);
             } else {
-                user.activeStatus = false;
+                applyAdminInactivationDefaults(user);
             }
         } else if (status) {
             if (status === "active") {
                 applyAdminActivationDefaults(user);
             } else {
-                user.activeStatus = false;
+                applyAdminInactivationDefaults(user);
             }
         }
         if (kycStatus) user.kycStatus = kycStatus;
@@ -231,7 +237,7 @@ exports.updateUserStatus = async (req, res) => {
         if (status === 'active') {
             applyAdminActivationDefaults(user);
         } else {
-            user.activeStatus = false;
+            applyAdminInactivationDefaults(user);
         }
         await user.save();
         await reconcileAdminActivation(user, wasActive);
@@ -307,3 +313,4 @@ exports.updateUserRole = async (req, res) => {
         });
     }
 };
+

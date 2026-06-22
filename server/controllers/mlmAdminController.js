@@ -38,6 +38,10 @@ exports.updateUserStatus = async (req, res) => {
         if (!user) return res.status(404).json({ message: "User not found" });
 
         user.activeStatus = activeStatus;
+        if (!activeStatus) {
+            user.packageType = "none";
+            user.dailyCapping = 0;
+        }
         await user.save();
         res.json({ message: `User status updated to ${activeStatus ? "Active" : "Inactive"}` });
     } catch (error) {
@@ -180,3 +184,4 @@ exports.getSystemMLMStats = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+

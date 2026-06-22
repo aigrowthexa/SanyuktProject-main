@@ -108,7 +108,9 @@ const ProfileBanner = ({ userData, stats, matchingReport }) => {
 
     if (!userData) return null;
 
-    const packageName = PACKAGES_MAP[userData.packageType] || userData.packageType || 'Not Active';
+    const packageName = userData.activeStatus
+        ? (PACKAGES_MAP[userData.packageType] || userData.packageType || 'Not Active')
+        : 'Not Active';
 
     const infoRows = [
         {
@@ -208,3 +210,4 @@ const ProfileBanner = ({ userData, stats, matchingReport }) => {
 };
 
 export default ProfileBanner;
+
