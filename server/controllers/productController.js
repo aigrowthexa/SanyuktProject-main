@@ -64,7 +64,10 @@ exports.getProducts = async (req, res) => {
         }
 
         if (category && category !== 'All') {
-            query.category = normalizeProductCategory(category);
+            const normalizedCategory = normalizeProductCategory(category);
+            query.category = normalizedCategory === "Fashion/Clothes"
+                ? { $in: ["Fashion", "Fashion/Clothes"] }
+                : normalizedCategory;
         }
 
         const [products, total] = await Promise.all([

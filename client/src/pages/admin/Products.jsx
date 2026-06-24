@@ -34,7 +34,7 @@ const AdminProducts = () => {
     const categories = [
         "Mobile",
         "Electronics",
-        "Fashion",
+        "Fashion/Clothes",
         "Beauty and cosmetic home based products",
         "Toys and baby toys",
         "Food & health",
@@ -691,7 +691,7 @@ const AdminProducts = () => {
                                     <div className="p-5">
                                         <div className="mb-3">
                                             <span className="text-[9px] font-black text-[#C8A96A]/60 px-2 py-0.5 rounded border border-[#C8A96A]/20 uppercase tracking-widest">
-                                                {product.category || "Uncategorized"}
+                                                {product.category === "Fashion" ? "Fashion/Clothes" : (product.category || "Uncategorized")}
                                             </span>
                                         </div>
 

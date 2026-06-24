@@ -1,7 +1,7 @@
 const PRODUCT_CATEGORIES = [
     "Mobile",
     "Electronics",
-    "Fashion",
+    "Fashion/Clothes",
     "Beauty and cosmetic home based products",
     "Toys and baby toys",
     "Food & health",
@@ -20,8 +20,8 @@ const PRODUCT_CATEGORIES = [
 ];
 
 const PRODUCT_CATEGORY_ALIASES = {
-    "fashion/clothes": "Fashion",
-    fashion: "Fashion",
+    "fashion/clothes": "Fashion/Clothes",
+    fashion: "Fashion/Clothes",
     "beauty & cosmetics": "Beauty and cosmetic home based products",
     cosmetics: "Beauty and cosmetic home based products",
     "beauty and cosmetic home based products": "Beauty and cosmetic home based products",

@@ -31,7 +31,7 @@ const ProductsPage = () => {
     const categories = [
         "All",
         "Pharmacy and household",
-        "Fashion",
+        "Fashion/Clothes",
         "Mobile",
         "Electronics",
         "Beauty & Cosmetics",
@@ -358,7 +358,7 @@ const ProductsPage = () => {
                                         {/* Product Name & Category */}
                                         <div className="mb-2.5">
                                             <span className="text-[9px] md:text-[10px] font-black text-[#C8A96A]/70 uppercase tracking-[0.22em] mb-1.5 block">
-                                                {product.category === "Beauty and cosmetic home based products" ? "Cosmetics" : (product.category?.split(' ')[0] || "General")}
+                                                {product.category === "Beauty and cosmetic home based products" ? "Cosmetics" : (product.category === "Fashion" ? "Fashion/Clothes" : (product.category?.split(' ')[0] || "General"))}
                                             </span>
                                             <h3 className="font-serif font-bold text-[#F5E6C8] text-[15px] md:text-[17px] group-hover:text-[#C8A96A] transition-colors duration-300 leading-snug line-clamp-2 min-h-[2.8rem]">
                                                 {product.name}

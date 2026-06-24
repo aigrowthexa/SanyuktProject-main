@@ -165,7 +165,7 @@ const ProductsCarousel = ({
                                                     {product.name}
                                                 </h3>
                                                 <span className="w-fit text-[11px] font-black bg-[#C8A96A]/10 text-[#C8A96A] px-1.5 py-0.5 rounded-md uppercase tracking-wider border border-[#C8A96A]/20">
-                                                    {category === 'Beauty and cosmetic home based products' ? 'Beauty & Cosmetics' : category}
+                                                    {category === 'Beauty and cosmetic home based products' ? 'Beauty & Cosmetics' : (category === 'Fashion' ? 'Fashion/Clothes' : category)}
                                                 </span>
                                             </div>
 

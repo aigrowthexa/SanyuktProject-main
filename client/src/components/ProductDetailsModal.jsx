@@ -238,7 +238,7 @@ const ProductDetailsModal = ({
                                     {product.name}
                                 </Typography>
                                 <Chip
-                                    label={product.category === "Beauty and cosmetic home based products" ? "Cosmetics" : (product.category || "General")}
+                                    label={product.category === "Beauty and cosmetic home based products" ? "Cosmetics" : (product.category === "Fashion" ? "Fashion/Clothes" : (product.category || "General"))}
                                     size="small"
                                     sx={{
                                         bgcolor: 'rgba(200,169,106,0.05)',
