@@ -45,7 +45,10 @@ const ProductsPage = () => {
         "Jwellery & accessories",
         "Appliances",
         "Everyday needs",
-        "Grocery"
+        "Grocery",
+        "Ayurvedic",
+        "Organic"
+
     ];
 
     // Notifications State
@@ -67,7 +70,7 @@ const ProductsPage = () => {
                     category: selectedCategory
                 }
             });
-            
+
             if (response.data.success) {
                 setProducts(response.data.products || []);
                 setTotalPages(response.data.totalPages || 1);
@@ -185,8 +188,7 @@ const ProductsPage = () => {
         setImageErrors(prev => ({ ...prev, [productId]: true }));
         console.log(`Image load failed for product: ${productId}`);
     };
-
-    // इमेज URL बनाने के लिए फंक्शन
+    // Build product image URLs
     const getProductImages = (product) => {
         if (!product) return [];
         if (Array.isArray(product.images) && product.images.length > 0) {
@@ -218,7 +220,7 @@ const ProductsPage = () => {
                                     Our Products
                                 </h1>
                                 <p className="text-[9px] md:text-[10px] text-[#F5E6C8]/80 font-black uppercase tracking-[0.25em] mt-0.5">
-                                    Trusted Quality • Premium Lifestyle
+                                    Trusted Quality | Premium Lifestyle
                                 </p>
                             </div>
                         </div>
@@ -277,7 +279,7 @@ const ProductsPage = () => {
                     <SectionLoader text="Loading Excellence..." />
                 ) : filteredProducts.length === 0 ? (
                     <div className="text-center py-10 luxury-box bg-[#1A1A1A]">
-                        <div className="text-6xl mb-4">✨</div>
+                        <div className="text-6xl mb-4">*</div>
                         <h3 className="text-xl font-serif font-bold text-[#C8A96A] mb-2">No items discovered</h3>
                         <p className="text-[#F5E6C8]/60">Try exploring our other premium categories</p>
                     </div>
@@ -370,11 +372,11 @@ const ProductsPage = () => {
                                         {/* Price Section */}
                                         <div className="flex items-baseline gap-1.5 md:gap-2 mb-3 md:mb-4">
                                             <span className="text-lg md:text-xl font-black text-[#C8A96A]">
-                                                ₹{formatCurrency(product.price)}
+                                                {"\u20B9"}{formatCurrency(product.price)}
                                             </span>
                                             {product.oldPrice && (
                                                 <span className="text-[11px] text-[#F5E6C8]/60 line-through">
-                                                    ₹{formatCurrency(product.oldPrice)}
+                                                    {"\u20B9"}{formatCurrency(product.oldPrice)}
                                                 </span>
                                             )}
                                         </div>
@@ -433,7 +435,7 @@ const ProductsPage = () => {
                             totalItems={totalItems}
                             limit={limit}
                             onPageChange={setCurrentPage}
-                            onLimitChange={() => {}} // Limit fixed at 12 for user frontend
+                            onLimitChange={() => { }} // Limit fixed at 12 for user frontend
                             showLimit={false}
                         />
                     </div>

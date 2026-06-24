@@ -1,4 +1,5 @@
 const Product = require("../models/Product");
+const { normalizeProductCategory } = require("../utils/productCategory");
 
 const getUploadedImages = (req) => {
     const directImages = Array.isArray(req.files?.images)
@@ -33,6 +34,7 @@ exports.createProduct = async (req, res) => {
         const uploadedImages = getUploadedImages(req);
         const product = new Product({
             ...req.body,
+            category: normalizeProductCategory(req.body.category),
             image: uploadedImages[0] || "",
             images: uploadedImages,
         });
@@ -62,11 +64,7 @@ exports.getProducts = async (req, res) => {
         }
 
         if (category && category !== 'All') {
-            if (category === "Beauty & Cosmetics") {
-                query.category = { $in: ["Beauty & Cosmetics", "Beauty and cosmetic home based products"] };
-            } else {
-                query.category = category;
-            }
+            query.category = normalizeProductCategory(category);
         }
 
         const [products, total] = await Promise.all([
@@ -98,6 +96,7 @@ exports.updateProduct = async (req, res) => {
             ...req.body,
         };
         delete updateData.existingImages;
+        updateData.category = normalizeProductCategory(req.body.category);
 
         const uploadedImages = getUploadedImages(req);
         const existingImages = parseExistingImages(req.body.existingImages);

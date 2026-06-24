@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { PRODUCT_CATEGORIES } = require("../utils/productCategory");
 
 const productSchema = new mongoose.Schema(
     {
@@ -13,29 +14,11 @@ const productSchema = new mongoose.Schema(
             default: [],
         },
         description: String,
-
-        // ⭐ NEW FIELDS
+        // Category whitelist for product documents
         category: {
             type: String,
             required: true,
-            enum: [
-                "Mobile",
-                "Electronics",
-                "Fashion",
-                "Beauty and cosmetic home based products",
-                "Toys and baby toys",
-                "Food & health",
-                "Auto & accessories",
-                "Sports & games",
-                "Books & education",
-                "Furniture",
-                "Footwear",
-                "Jwellery & accessories",
-                "Appliances",
-                "Pharmacy and household",
-                "Everyday needs",
-                "Grocery"
-            ]
+            enum: PRODUCT_CATEGORIES
         },
         rating: {
             type: Number,

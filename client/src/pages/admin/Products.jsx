@@ -47,7 +47,9 @@ const AdminProducts = () => {
         "Appliances",
         "Pharmacy and household",
         "Everyday needs",
-        "Grocery"
+        "Grocery",
+        "Ayurvedic",
+        "Organic"
     ];
 
     const getProductImageUrl = (image) => {
@@ -340,9 +342,9 @@ const AdminProducts = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] uppercase font-black tracking-widest text-[#C8A96A]/80">Selling Price (₹) <span className="text-red-500">*</span></label>
+                                <label className="text-[10px] uppercase font-black tracking-widest text-[#C8A96A]/80">Selling Price (Rs) <span className="text-red-500">*</span></label>
                                 <div className="relative">
-                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#C8A96A] font-bold">₹</span>
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#C8A96A] font-bold">Rs</span>
                                     <input
                                         name="price"
                                         type="number"
@@ -355,9 +357,9 @@ const AdminProducts = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] uppercase font-black tracking-widest text-[#C8A96A]/80">Original Price (₹)</label>
+                                <label className="text-[10px] uppercase font-black tracking-widest text-[#C8A96A]/80">Original Price (Rs)</label>
                                 <div className="relative">
-                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#C8A96A]/50 font-bold">₹</span>
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#C8A96A]/50 font-bold">Rs</span>
                                     <input
                                         name="oldPrice"
                                         type="number"
@@ -459,7 +461,7 @@ const AdminProducts = () => {
                                                         : (formData.paymentMethods || []).filter(m => m !== method.id);
                                                     setFormData({ ...formData, paymentMethods: newMethods });
                                                 }}
-                                                className="w-5 h-5 rounded bg-[#121212] border border-[#C8A96A]/50 checked:bg-[#C8A96A] checked:border-[#C8A96A] appearance-none relative flex items-center justify-center before:content-['✓'] before:text-[#121212] before:text-xs before:font-black before:opacity-0 checked:before:opacity-100 transition-all cursor-pointer"
+                                                className="w-5 h-5 rounded bg-[#121212] border border-[#C8A96A]/50 checked:bg-[#C8A96A] checked:border-[#C8A96A] appearance-none relative flex items-center justify-center before:content-['v'] before:text-[#121212] before:text-xs before:font-black before:opacity-0 checked:before:opacity-100 transition-all cursor-pointer"
                                             />
                                             <span className="text-xs font-bold text-[#F5E6C8]/70 group-hover:text-[#C8A96A] transition-colors">{method.label}</span>
                                         </label>
@@ -617,116 +619,116 @@ const AdminProducts = () => {
                                     key={product._id}
                                     className="group relative bg-[#0D0D0D] rounded-xl border border-[#C8A96A]/20 overflow-hidden hover:border-[#C8A96A]/50 transition-all duration-500 hover:shadow-[0_10px_30px_rgba(0,0,0,0.8)]"
                                 >
-                                {/* Featured Ribbon */}
-                                {product.isFeatured && (
-                                    <div className="absolute top-4 -right-10 bg-[#C8A96A] text-[#0D0D0D] text-[9px] font-black uppercase tracking-widest py-1 px-10 transform rotate-45 z-10 shadow-lg">
-                                        Featured
-                                    </div>
-                                )}
-
-                                {/* Product Image */}
-                                <div className="relative aspect-[4/3] overflow-hidden bg-[#121212] border-b border-[#C8A96A]/10">
-                                    {productImages.length > 0 ? (
-                                        <div className={`grid h-full ${productImages.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
-                                            {productImages.map((image, index) => (
-                                                <div
-                                                    key={`${product._id}-image-${index}`}
-                                                    className={index === 0 ? "" : "border-l border-[#C8A96A]/10"}
-                                                >
-                                                    <img
-                                                        src={getProductImageUrl(image)}
-                                                        alt={`${product.name} ${index + 1}`}
-                                                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
-                                                        onError={(e) => {
-                                                            e.target.onerror = null;
-                                                            e.target.src = "https://via.placeholder.com/300x200/121212/C8A96A?text=Missing+Image";
-                                                        }}
-                                                    />
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="w-full h-full flex flex-col items-center justify-center text-[#C8A96A]/20">
-                                            <ImageIcon size={48} strokeWidth={1} />
-                                            <p className="text-[10px] uppercase font-bold tracking-widest mt-2">No Visual</p>
+                                    {/* Featured Ribbon */}
+                                    {product.isFeatured && (
+                                        <div className="absolute top-4 -right-10 bg-[#C8A96A] text-[#0D0D0D] text-[9px] font-black uppercase tracking-widest py-1 px-10 transform rotate-45 z-10 shadow-lg">
+                                            Featured
                                         </div>
                                     )}
 
-                                    {productImages.length > 1 && (
-                                        <div className="absolute top-3 left-3 px-2 py-1 rounded bg-[#0D0D0D]/80 text-[#C8A96A] text-[9px] font-black uppercase tracking-widest border border-[#C8A96A]/20 backdrop-blur-md">
-                                            2 Images
-                                        </div>
-                                    )}
-
-                                    {/* Overlay Actions */}
-                                    <div className="absolute inset-0 bg-[#0D0D0D]/80 opacity-0 group-hover:opacity-100 backdrop-blur-[2px] transition-all duration-300 flex items-center justify-center gap-4">
-                                        <button
-                                            onClick={() => handleEdit(product)}
-                                            className="w-10 h-10 rounded-full bg-[#C8A96A] text-[#0D0D0D] flex items-center justify-center hover:bg-[#D4AF37] hover:scale-110 transition-transform shadow-[0_0_15px_rgba(200,169,106,0.5)]"
-                                            title="Edit Product"
-                                        >
-                                            <Edit2 size={16} strokeWidth={2.5} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(product._id)}
-                                            className="w-10 h-10 rounded-full bg-red-600/90 text-white flex items-center justify-center hover:bg-red-500 hover:scale-110 transition-transform shadow-[0_0_15px_rgba(239,68,68,0.5)]"
-                                            title="Delete Product"
-                                        >
-                                            <Trash2 size={16} strokeWidth={2.5} />
-                                        </button>
-                                    </div>
-
-                                    {/* Stock Badge */}
-                                    <div className={`absolute bottom-3 left-3 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest border backdrop-blur-md ${product.stock > 0
-                                        ? "bg-green-900/60 text-green-400 border-green-500/30"
-                                        : "bg-red-900/60 text-red-400 border-red-500/30"
-                                        }`}>
-                                        {product.stock > 0 ? `${product.stock} In Stock` : "Depleted"}
-                                    </div>
-                                </div>
-
-                                {/* Product Details */}
-                                <div className="p-5">
-                                    <div className="mb-3">
-                                        <span className="text-[9px] font-black text-[#C8A96A]/60 px-2 py-0.5 rounded border border-[#C8A96A]/20 uppercase tracking-widest">
-                                            {product.category || "Uncategorized"}
-                                        </span>
-                                    </div>
-
-                                    <h3 className="text-lg font-serif font-bold text-[#F5E6C8] mb-3 line-clamp-1 group-hover:text-[#C8A96A] transition-colors">
-                                        {product.name}
-                                    </h3>
-
-                                    <div className="flex items-baseline gap-2 mb-4">
-                                        <span className="text-xl font-bold text-[#10b981]">
-                                            ₹{parseFloat(product.price).toLocaleString('en-IN')}
-                                        </span>
-                                        {product.oldPrice && parseFloat(product.oldPrice) > parseFloat(product.price) && (
-                                            <span className="text-[11px] text-[#F5E6C8]/40 line-through font-mono">
-                                                ₹{parseFloat(product.oldPrice).toLocaleString('en-IN')}
-                                            </span>
+                                    {/* Product Image */}
+                                    <div className="relative aspect-[4/3] overflow-hidden bg-[#121212] border-b border-[#C8A96A]/10">
+                                        {productImages.length > 0 ? (
+                                            <div className={`grid h-full ${productImages.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+                                                {productImages.map((image, index) => (
+                                                    <div
+                                                        key={`${product._id}-image-${index}`}
+                                                        className={index === 0 ? "" : "border-l border-[#C8A96A]/10"}
+                                                    >
+                                                        <img
+                                                            src={getProductImageUrl(image)}
+                                                            alt={`${product.name} ${index + 1}`}
+                                                            className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
+                                                            onError={(e) => {
+                                                                e.target.onerror = null;
+                                                                e.target.src = "https://via.placeholder.com/300x200/121212/C8A96A?text=Missing+Image";
+                                                            }}
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="w-full h-full flex flex-col items-center justify-center text-[#C8A96A]/20">
+                                                <ImageIcon size={48} strokeWidth={1} />
+                                                <p className="text-[10px] uppercase font-bold tracking-widest mt-2">No Visual</p>
+                                            </div>
                                         )}
+
+                                        {productImages.length > 1 && (
+                                            <div className="absolute top-3 left-3 px-2 py-1 rounded bg-[#0D0D0D]/80 text-[#C8A96A] text-[9px] font-black uppercase tracking-widest border border-[#C8A96A]/20 backdrop-blur-md">
+                                                2 Images
+                                            </div>
+                                        )}
+
+                                        {/* Overlay Actions */}
+                                        <div className="absolute inset-0 bg-[#0D0D0D]/80 opacity-0 group-hover:opacity-100 backdrop-blur-[2px] transition-all duration-300 flex items-center justify-center gap-4">
+                                            <button
+                                                onClick={() => handleEdit(product)}
+                                                className="w-10 h-10 rounded-full bg-[#C8A96A] text-[#0D0D0D] flex items-center justify-center hover:bg-[#D4AF37] hover:scale-110 transition-transform shadow-[0_0_15px_rgba(200,169,106,0.5)]"
+                                                title="Edit Product"
+                                            >
+                                                <Edit2 size={16} strokeWidth={2.5} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(product._id)}
+                                                className="w-10 h-10 rounded-full bg-red-600/90 text-white flex items-center justify-center hover:bg-red-500 hover:scale-110 transition-transform shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+                                                title="Delete Product"
+                                            >
+                                                <Trash2 size={16} strokeWidth={2.5} />
+                                            </button>
+                                        </div>
+
+                                        {/* Stock Badge */}
+                                        <div className={`absolute bottom-3 left-3 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest border backdrop-blur-md ${product.stock > 0
+                                            ? "bg-green-900/60 text-green-400 border-green-500/30"
+                                            : "bg-red-900/60 text-red-400 border-red-500/30"
+                                            }`}>
+                                            {product.stock > 0 ? `${product.stock} In Stock` : "Depleted"}
+                                        </div>
                                     </div>
 
-                                    {/* Specs Grid */}
-                                    <div className="grid grid-cols-2 gap-2 mb-4 pt-4 border-t border-[#C8A96A]/10">
-                                        <div className="bg-[#121212] p-2 rounded border border-[#C8A96A]/5">
-                                            <p className="text-[9px] text-[#C8A96A]/50 uppercase font-black mb-1">Volumetrics</p>
-                                            <p className="text-xs font-mono text-[#F5E6C8]">{product.bv} BV</p>
+                                    {/* Product Details */}
+                                    <div className="p-5">
+                                        <div className="mb-3">
+                                            <span className="text-[9px] font-black text-[#C8A96A]/60 px-2 py-0.5 rounded border border-[#C8A96A]/20 uppercase tracking-widest">
+                                                {product.category || "Uncategorized"}
+                                            </span>
                                         </div>
-                                        <div className="bg-[#121212] p-2 rounded border border-[#C8A96A]/5">
-                                            <p className="text-[9px] text-[#C8A96A]/50 uppercase font-black mb-1">Reception</p>
-                                            <div className="flex items-center gap-1">
-                                                <Star size={10} className="text-[#C8A96A] fill-[#C8A96A]" />
-                                                <span className="text-xs font-mono text-[#F5E6C8]">{product.rating || 'N/A'}</span>
+
+                                        <h3 className="text-lg font-serif font-bold text-[#F5E6C8] mb-3 line-clamp-1 group-hover:text-[#C8A96A] transition-colors">
+                                            {product.name}
+                                        </h3>
+
+                                        <div className="flex items-baseline gap-2 mb-4">
+                                            <span className="text-xl font-bold text-[#10b981]">
+                                                Rs {parseFloat(product.price).toLocaleString('en-IN')}
+                                            </span>
+                                            {product.oldPrice && parseFloat(product.oldPrice) > parseFloat(product.price) && (
+                                                <span className="text-[11px] text-[#F5E6C8]/40 line-through font-mono">
+                                                    Rs {parseFloat(product.oldPrice).toLocaleString('en-IN')}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {/* Specs Grid */}
+                                        <div className="grid grid-cols-2 gap-2 mb-4 pt-4 border-t border-[#C8A96A]/10">
+                                            <div className="bg-[#121212] p-2 rounded border border-[#C8A96A]/5">
+                                                <p className="text-[9px] text-[#C8A96A]/50 uppercase font-black mb-1">Volumetrics</p>
+                                                <p className="text-xs font-mono text-[#F5E6C8]">{product.bv} BV</p>
+                                            </div>
+                                            <div className="bg-[#121212] p-2 rounded border border-[#C8A96A]/5">
+                                                <p className="text-[9px] text-[#C8A96A]/50 uppercase font-black mb-1">Reception</p>
+                                                <div className="flex items-center gap-1">
+                                                    <Star size={10} className="text-[#C8A96A] fill-[#C8A96A]" />
+                                                    <span className="text-xs font-mono text-[#F5E6C8]">{product.rating || 'N/A'}</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div className="text-[11px] text-[#F5E6C8]/50 line-clamp-2 leading-relaxed h-8">
-                                        {product.description}
+                                        <div className="text-[11px] text-[#F5E6C8]/50 line-clamp-2 leading-relaxed h-8">
+                                            {product.description}
+                                        </div>
                                     </div>
-                                </div>
                                 </div>
                             );
                         })}
@@ -736,16 +738,16 @@ const AdminProducts = () => {
                 {/* Pagination */}
                 {!loading && products.length > 0 && (
                     <div className="mt-8">
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={effectiveTotalPages}
-                        totalItems={totalItems}
-                        limit={limit}
-                        onPageChange={setCurrentPage}
-                        onLimitChange={(newLimit) => {
-                            setLimit(newLimit);
-                            setCurrentPage(1);
-                        }}
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={effectiveTotalPages}
+                            totalItems={totalItems}
+                            limit={limit}
+                            onPageChange={setCurrentPage}
+                            onLimitChange={(newLimit) => {
+                                setLimit(newLimit);
+                                setCurrentPage(1);
+                            }}
                         />
                     </div>
                 )}
@@ -754,7 +756,7 @@ const AdminProducts = () => {
             {/* Footer */}
             <div className="mt-12 text-center pb-8 opacity-50">
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#F5E6C8]/40">
-                    © 2024 Sanyukt Parivar. All rights reserved.
+                    Copyright 2024 Sanyukt Parivar. All rights reserved.
                 </p>
             </div>
         </div>
