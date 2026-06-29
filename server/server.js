@@ -13,13 +13,14 @@ app.listen(PORT, () => {
     startCronJobs();
 });
 
-// ── Daily Cron Jobs ───────────────────────────────────────────────────────────
 function startCronJobs() {
     const mlmController = require('./controllers/mlmController');
+    const Order = require('./models/Order');
+    const PROFIT_SHARING_ORDER_STATUSES = ['paid', 'delivered'];
 
     // At 11:59 PM calculate matching bonus + profit sharing
     // Simple interval-based scheduler (works even if node-cron is not installed)
-    const MIDNIGHT_MS = 24 * 60 * 60 * 1000; // 24 hours
+    const MIDNIGHT_MS = 24 * 60 * 60 * 1000;
 
     const msUntilMidnight = () => {
         const now = new Date();
@@ -32,36 +33,35 @@ function startCronJobs() {
     const scheduleDailyJobs = async () => {
         console.log('[CRON] Running daily MLM jobs...');
         try {
-            // 1. Calculate matching bonus
             await mlmController.calculateDailyMatchingBonus();
-            console.log('[CRON] ✅ Matching bonus done');
+            console.log('[CRON] Matching bonus done');
 
-            // 2. Profit Sharing — aaj ke total joining amount pe 4%
-            const User = require('./models/User');
+            // Only paid and delivered orders should contribute to turnover.
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            const Order = require('./models/Order');
-            const todayOrders = await Order.find({ createdAt: { $gte: today } });
-            const dailyTurnover = todayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+            const todayOrders = await Order.find({
+                createdAt: { $gte: today },
+                status: { $in: PROFIT_SHARING_ORDER_STATUSES },
+            });
+            const dailyTurnover = todayOrders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+
             if (dailyTurnover > 0) {
                 await mlmController.distributeProfitSharing(dailyTurnover);
-                console.log(`[CRON] ✅ Profit sharing done on ₹${dailyTurnover} turnover`);
+                console.log(
+                    `[CRON] Profit sharing done on Rs ${dailyTurnover} turnover from ${PROFIT_SHARING_ORDER_STATUSES.join('/')} orders`
+                );
             }
 
-            // 3. Update ranks
             await mlmController.updateAllRanks();
-            console.log('[CRON] ✅ Ranks updated');
-
+            console.log('[CRON] Ranks updated');
         } catch (err) {
-            console.error('[CRON] ❌ Error in daily jobs:', err.message);
+            console.error('[CRON] Error in daily jobs:', err.message);
         }
 
-        // Schedule again for tomorrow
         setTimeout(scheduleDailyJobs, MIDNIGHT_MS);
     };
 
-    // Wait until midnight for the first run
     const firstRun = msUntilMidnight();
-    console.log(`[CRON] Daily jobs scheduled — first run in ${Math.round(firstRun / 60000)} minutes`);
+    console.log(`[CRON] Daily jobs scheduled - first run in ${Math.round(firstRun / 60000)} minutes`);
     setTimeout(scheduleDailyJobs, firstRun);
 }
